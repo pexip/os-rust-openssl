@@ -1,0 +1,72 @@
+Source: rust-openssl
+Section: rust
+Priority: optional
+Build-Depends: debhelper-compat (= 13),
+ dh-sequence-cargo
+Build-Depends-Arch: cargo:native <!nocheck>,
+ rustc:native (>= 1.63.0) <!nocheck>,
+ libstd-rust-dev <!nocheck>,
+ librust-bitflags-2+default-dev (>= 2.2.1-~~) <!nocheck>,
+ librust-cfg-if-1+default-dev <!nocheck>,
+ librust-foreign-types-0.3+default-dev (>= 0.3.1-~~) <!nocheck>,
+ librust-libc-0.2+default-dev <!nocheck>,
+ librust-once-cell-1+default-dev (>= 1.5.2-~~) <!nocheck>,
+ librust-openssl-macros-0.1+default-dev (>= 0.1.1-~~) <!nocheck>,
+ librust-openssl-sys-0.9+default-dev (>= 0.9.107-~~) <!nocheck>
+Maintainer: Debian Rust Maintainers <pkg-rust-maintainers@alioth-lists.debian.net>
+Uploaders:
+ Ximin Luo <infinity0@debian.org>
+Standards-Version: 4.7.0
+Vcs-Git: https://salsa.debian.org/rust-team/debcargo-conf.git [src/openssl]
+Vcs-Browser: https://salsa.debian.org/rust-team/debcargo-conf/tree/master/src/openssl
+Homepage: https://github.com/sfackler/rust-openssl
+X-Cargo-Crate: openssl
+Rules-Requires-Root: no
+
+Package: librust-openssl-dev
+Architecture: any
+Multi-Arch: same
+Depends:
+ ${misc:Depends},
+ librust-bitflags-2+default-dev (>= 2.2.1-~~),
+ librust-cfg-if-1+default-dev,
+ librust-foreign-types-0.3+default-dev (>= 0.3.1-~~),
+ librust-libc-0.2+default-dev,
+ librust-once-cell-1+default-dev (>= 1.5.2-~~),
+ librust-openssl-macros-0.1+default-dev (>= 0.1.1-~~),
+ librust-openssl-sys-0.9+bindgen-dev (>= 0.9.107-~~),
+ librust-openssl-sys-0.9+default-dev (>= 0.9.107-~~)
+Provides:
+ librust-openssl+bindgen-dev (= ${binary:Version}),
+ librust-openssl+default-dev (= ${binary:Version}),
+ librust-openssl+v101-dev (= ${binary:Version}),
+ librust-openssl+v102-dev (= ${binary:Version}),
+ librust-openssl+v110-dev (= ${binary:Version}),
+ librust-openssl+v111-dev (= ${binary:Version}),
+ librust-openssl+vendored-dev (= ${binary:Version}),
+ librust-openssl-0-dev (= ${binary:Version}),
+ librust-openssl-0+bindgen-dev (= ${binary:Version}),
+ librust-openssl-0+default-dev (= ${binary:Version}),
+ librust-openssl-0+v101-dev (= ${binary:Version}),
+ librust-openssl-0+v102-dev (= ${binary:Version}),
+ librust-openssl-0+v110-dev (= ${binary:Version}),
+ librust-openssl-0+v111-dev (= ${binary:Version}),
+ librust-openssl-0+vendored-dev (= ${binary:Version}),
+ librust-openssl-0.10-dev (= ${binary:Version}),
+ librust-openssl-0.10+bindgen-dev (= ${binary:Version}),
+ librust-openssl-0.10+default-dev (= ${binary:Version}),
+ librust-openssl-0.10+v101-dev (= ${binary:Version}),
+ librust-openssl-0.10+v102-dev (= ${binary:Version}),
+ librust-openssl-0.10+v110-dev (= ${binary:Version}),
+ librust-openssl-0.10+v111-dev (= ${binary:Version}),
+ librust-openssl-0.10+vendored-dev (= ${binary:Version}),
+ librust-openssl-0.10.72-dev (= ${binary:Version}),
+ librust-openssl-0.10.72+bindgen-dev (= ${binary:Version}),
+ librust-openssl-0.10.72+default-dev (= ${binary:Version}),
+ librust-openssl-0.10.72+v101-dev (= ${binary:Version}),
+ librust-openssl-0.10.72+v102-dev (= ${binary:Version}),
+ librust-openssl-0.10.72+v110-dev (= ${binary:Version}),
+ librust-openssl-0.10.72+v111-dev (= ${binary:Version}),
+ librust-openssl-0.10.72+vendored-dev (= ${binary:Version})
+Description: OpenSSL bindings - Rust source code
+ Source code for Debianized Rust crate "openssl"

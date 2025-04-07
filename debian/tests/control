@@ -1,0 +1,44 @@
+Test-Command: /usr/share/cargo/bin/cargo-auto-test openssl 0.10.72 --all-targets --all-features
+Features: test-name=rust-openssl:@
+Depends: dh-cargo (>= 31), rustc (>= 1.63.0), librust-hex-0.4+default-dev, @
+Restrictions: allow-stderr, skip-not-installable
+
+Test-Command: /usr/share/cargo/bin/cargo-auto-test openssl 0.10.72 --all-targets --no-default-features --features bindgen
+Features: test-name=librust-openssl-dev:bindgen
+Depends: dh-cargo (>= 31), rustc (>= 1.63.0), librust-hex-0.4+default-dev, @
+Restrictions: allow-stderr, skip-not-installable
+
+Test-Command: /usr/share/cargo/bin/cargo-auto-test openssl 0.10.72 --all-targets
+Features: test-name=librust-openssl-dev:default
+Depends: dh-cargo (>= 31), rustc (>= 1.63.0), librust-hex-0.4+default-dev, @
+Restrictions: allow-stderr, skip-not-installable
+
+Test-Command: /usr/share/cargo/bin/cargo-auto-test openssl 0.10.72 --all-targets --no-default-features --features v101
+Features: test-name=librust-openssl-dev:v101
+Depends: dh-cargo (>= 31), rustc (>= 1.63.0), librust-hex-0.4+default-dev, @
+Restrictions: allow-stderr, skip-not-installable
+
+Test-Command: /usr/share/cargo/bin/cargo-auto-test openssl 0.10.72 --all-targets --no-default-features --features v102
+Features: test-name=librust-openssl-dev:v102
+Depends: dh-cargo (>= 31), rustc (>= 1.63.0), librust-hex-0.4+default-dev, @
+Restrictions: allow-stderr, skip-not-installable
+
+Test-Command: /usr/share/cargo/bin/cargo-auto-test openssl 0.10.72 --all-targets --no-default-features --features v110
+Features: test-name=librust-openssl-dev:v110
+Depends: dh-cargo (>= 31), rustc (>= 1.63.0), librust-hex-0.4+default-dev, @
+Restrictions: allow-stderr, skip-not-installable
+
+Test-Command: /usr/share/cargo/bin/cargo-auto-test openssl 0.10.72 --all-targets --no-default-features --features v111
+Features: test-name=librust-openssl-dev:v111
+Depends: dh-cargo (>= 31), rustc (>= 1.63.0), librust-hex-0.4+default-dev, @
+Restrictions: allow-stderr, skip-not-installable
+
+Test-Command: /usr/share/cargo/bin/cargo-auto-test openssl 0.10.72 --all-targets --no-default-features --features vendored
+Features: test-name=librust-openssl-dev:vendored
+Depends: dh-cargo (>= 31), rustc (>= 1.63.0), librust-hex-0.4+default-dev, @
+Restrictions: allow-stderr, skip-not-installable
+
+Test-Command: /usr/share/cargo/bin/cargo-auto-test openssl 0.10.72 --all-targets --no-default-features
+Features: test-name=librust-openssl-dev:
+Depends: dh-cargo (>= 31), rustc (>= 1.63.0), librust-hex-0.4+default-dev, @
+Restrictions: allow-stderr, skip-not-installable
