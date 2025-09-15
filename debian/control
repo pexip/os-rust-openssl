@@ -13,8 +13,9 @@ Build-Depends-Arch: cargo:native <!nocheck>,
  librust-once-cell-1+default-dev (>= 1.5.2-~~) <!nocheck>,
  librust-openssl-macros-0.1+default-dev (>= 0.1.1-~~) <!nocheck>,
  librust-openssl-sys-0.9+default-dev (>= 0.9.107-~~) <!nocheck>
-Maintainer: Debian Rust Maintainers <pkg-rust-maintainers@alioth-lists.debian.net>
-Uploaders:
+Maintainer: Pexip AS <packaging@pexip.com>
+XSBC-Pexip-Original-Maintainer: Debian Rust Maintainers <pkg-rust-maintainers@alioth-lists.debian.net>
+XSBC-Pexip-Original-Uploaders:
  Ximin Luo <infinity0@debian.org>
 Standards-Version: 4.7.0
 Vcs-Git: https://salsa.debian.org/rust-team/debcargo-conf.git [src/openssl]
@@ -22,6 +23,7 @@ Vcs-Browser: https://salsa.debian.org/rust-team/debcargo-conf/tree/master/src/op
 Homepage: https://github.com/sfackler/rust-openssl
 X-Cargo-Crate: openssl
 Rules-Requires-Root: no
+XS-Pexip-Upstream: http://deb.debian.org/debian/ trixie
 
 Package: librust-openssl-dev
 Architecture: any
