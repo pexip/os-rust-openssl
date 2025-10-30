@@ -1,5 +1,5 @@
 diff --git a/build.rs b/build.rs
-index d6d65798f..7cfce7547 100644
+index d6d6579..5d8f251 100644
 --- a/build.rs
 +++ b/build.rs
 @@ -7,11 +7,12 @@
@@ -16,7 +16,15 @@ index d6d65798f..7cfce7547 100644
  
      println!("cargo:rustc-check-cfg=cfg(libressl250)");
      println!("cargo:rustc-check-cfg=cfg(libressl251)");
-@@ -46,6 +47,8 @@ fn main() {
+@@ -34,6 +35,7 @@ fn main() {
+     println!("cargo:rustc-check-cfg=cfg(libressl390)");
+     println!("cargo:rustc-check-cfg=cfg(libressl400)");
+     println!("cargo:rustc-check-cfg=cfg(libressl410)");
++    println!("cargo:rustc-check-cfg=cfg(libressl420)");
+ 
+     println!("cargo:rustc-check-cfg=cfg(ossl101)");
+     println!("cargo:rustc-check-cfg=cfg(ossl102)");
+@@ -46,6 +48,8 @@ fn main() {
      println!("cargo:rustc-check-cfg=cfg(ossl310)");
      println!("cargo:rustc-check-cfg=cfg(ossl320)");
      println!("cargo:rustc-check-cfg=cfg(ossl330)");
@@ -25,7 +33,7 @@ index d6d65798f..7cfce7547 100644
  
      if env::var("DEP_OPENSSL_LIBRESSL").is_ok() {
          println!("cargo:rustc-cfg=libressl");
-@@ -59,6 +62,11 @@ fn main() {
+@@ -59,48 +63,28 @@ fn main() {
          println!("cargo:rustc-cfg=awslc");
      }
  
@@ -37,7 +45,89 @@ index d6d65798f..7cfce7547 100644
      if let Ok(v) = env::var("DEP_OPENSSL_LIBRESSL_VERSION_NUMBER") {
          let version = u64::from_str_radix(&v, 16).unwrap();
  
-@@ -169,5 +177,11 @@ fn main() {
+-        if version >= 0x2_05_00_00_0 {
+-            println!("cargo:rustc-cfg=libressl250");
+-        }
+-        if version >= 0x2_05_01_00_0 {
+-            println!("cargo:rustc-cfg=libressl251");
+-        }
+-        if version >= 0x2_06_01_00_0 {
+-            println!("cargo:rustc-cfg=libressl261");
+-        }
+-        if version >= 0x2_07_00_00_0 {
+-            println!("cargo:rustc-cfg=libressl270");
+-        }
+-        if version >= 0x2_07_01_00_0 {
+-            println!("cargo:rustc-cfg=libressl271");
+-        }
+-        if version >= 0x2_07_03_00_0 {
+-            println!("cargo:rustc-cfg=libressl273");
+-        }
+-        if version >= 0x2_08_00_00_0 {
+-            println!("cargo:rustc-cfg=libressl280");
+-        }
+-        if version >= 0x2_09_01_00_0 {
+-            println!("cargo:rustc-cfg=libressl291");
+-        }
+-        if version >= 0x3_01_00_00_0 {
+-            println!("cargo:rustc-cfg=libressl310");
+-        }
+-        if version >= 0x3_02_01_00_0 {
+-            println!("cargo:rustc-cfg=libressl321");
+-        }
+-        if version >= 0x3_03_02_00_0 {
+-            println!("cargo:rustc-cfg=libressl332");
+-        }
+-        if version >= 0x3_04_00_00_0 {
+-            println!("cargo:rustc-cfg=libressl340");
+-        }
+-        if version >= 0x3_05_00_00_0 {
+-            println!("cargo:rustc-cfg=libressl350");
+-        }
++        println!("cargo:rustc-cfg=libressl250");
++        println!("cargo:rustc-cfg=libressl251");
++        println!("cargo:rustc-cfg=libressl261");
++        println!("cargo:rustc-cfg=libressl270");
++        println!("cargo:rustc-cfg=libressl271");
++        println!("cargo:rustc-cfg=libressl273");
++        println!("cargo:rustc-cfg=libressl280");
++        println!("cargo:rustc-cfg=libressl291");
++        println!("cargo:rustc-cfg=libressl310");
++        println!("cargo:rustc-cfg=libressl321");
++        println!("cargo:rustc-cfg=libressl332");
++        println!("cargo:rustc-cfg=libressl340");
++        println!("cargo:rustc-cfg=libressl350");
++
+         if version >= 0x3_06_00_00_0 {
+             println!("cargo:rustc-cfg=libressl360");
+         }
+@@ -125,6 +109,9 @@ fn main() {
+         if version >= 0x4_01_00_00_0 {
+             println!("cargo:rustc-cfg=libressl410");
+         }
++        if version >= 0x4_02_00_00_0 {
++            println!("cargo:rustc-cfg=libressl420");
++        }
+     }
+ 
+     if let Ok(vars) = env::var("DEP_OPENSSL_CONF") {
+@@ -135,13 +122,9 @@ fn main() {
+ 
+     if let Ok(version) = env::var("DEP_OPENSSL_VERSION_NUMBER") {
+         let version = u64::from_str_radix(&version, 16).unwrap();
++        println!("cargo:rustc-cfg=ossl101");
++        println!("cargo:rustc-cfg=ossl102");
+ 
+-        if version >= 0x1_00_01_00_0 {
+-            println!("cargo:rustc-cfg=ossl101");
+-        }
+-        if version >= 0x1_00_02_00_0 {
+-            println!("cargo:rustc-cfg=ossl102");
+-        }
+         if version >= 0x1_01_00_00_0 {
+             println!("cargo:rustc-cfg=ossl110");
+         }
+@@ -169,5 +152,11 @@ fn main() {
          if version >= 0x3_03_00_00_0 {
              println!("cargo:rustc-cfg=ossl330");
          }
@@ -50,7 +140,7 @@ index d6d65798f..7cfce7547 100644
      }
  }
 diff --git a/src/aes.rs b/src/aes.rs
-index 25de83d5c..2cb06368d 100644
+index 25de83d..2cb0636 100644
 --- a/src/aes.rs
 +++ b/src/aes.rs
 @@ -23,11 +23,7 @@
@@ -83,7 +173,7 @@ index 25de83d5c..2cb06368d 100644
          let raw_key = "000102030405060708090A0B0C0D0E0F";
          let raw_iv = "000102030405060708090A0B0C0D0E0F101112131415161718191A1B1C1D1E1F";
 diff --git a/src/asn1.rs b/src/asn1.rs
-index 06df31a03..93bb5b218 100644
+index 06df31a..1ceee00 100644
 --- a/src/asn1.rs
 +++ b/src/asn1.rs
 @@ -57,7 +57,7 @@ foreign_type_and_impl_send_sync! {
@@ -95,7 +185,15 @@ index 06df31a03..93bb5b218 100644
      pub struct Asn1GeneralizedTime;
      /// Reference to a [`Asn1GeneralizedTime`]
      ///
-@@ -187,7 +187,7 @@ foreign_type_and_impl_send_sync! {
+@@ -165,7 +165,6 @@ impl Asn1Type {
+ /// [`diff`]: struct.Asn1TimeRef.html#method.diff
+ /// [`Asn1TimeRef`]: struct.Asn1TimeRef.html
+ #[derive(Debug, Clone, PartialEq, Eq, Hash)]
+-#[cfg(any(ossl102, boringssl, awslc))]
+ pub struct TimeDiff {
+     /// Difference in days
+     pub days: c_int,
+@@ -187,7 +186,7 @@ foreign_type_and_impl_send_sync! {
      /// [ASN_TIME_set] documentation at OpenSSL explains the ASN.1 implementation
      /// used by OpenSSL.
      ///
@@ -104,7 +202,115 @@ index 06df31a03..93bb5b218 100644
      pub struct Asn1Time;
      /// Reference to an [`Asn1Time`]
      ///
-@@ -423,7 +423,7 @@ foreign_type_and_impl_send_sync! {
+@@ -198,7 +197,6 @@ foreign_type_and_impl_send_sync! {
+ impl Asn1TimeRef {
+     /// Find difference between two times
+     #[corresponds(ASN1_TIME_diff)]
+-    #[cfg(any(ossl102, boringssl, awslc))]
+     pub fn diff(&self, compare: &Self) -> Result<TimeDiff, ErrorStack> {
+         let mut days = 0;
+         let mut secs = 0;
+@@ -214,7 +212,6 @@ impl Asn1TimeRef {
+ 
+     /// Compare two times
+     #[corresponds(ASN1_TIME_compare)]
+-    #[cfg(any(ossl102, boringssl, awslc))]
+     pub fn compare(&self, other: &Self) -> Result<Ordering, ErrorStack> {
+         let d = self.diff(other)?;
+         if d.days > 0 || d.secs > 0 {
+@@ -228,7 +225,6 @@ impl Asn1TimeRef {
+     }
+ }
+ 
+-#[cfg(any(ossl102, boringssl, awslc))]
+ impl PartialEq for Asn1TimeRef {
+     fn eq(&self, other: &Asn1TimeRef) -> bool {
+         self.diff(other)
+@@ -237,7 +233,6 @@ impl PartialEq for Asn1TimeRef {
+     }
+ }
+ 
+-#[cfg(any(ossl102, boringssl, awslc))]
+ impl PartialEq<Asn1Time> for Asn1TimeRef {
+     fn eq(&self, other: &Asn1Time) -> bool {
+         self.diff(other)
+@@ -246,7 +241,6 @@ impl PartialEq<Asn1Time> for Asn1TimeRef {
+     }
+ }
+ 
+-#[cfg(any(ossl102, boringssl, awslc))]
+ impl PartialEq<Asn1Time> for &Asn1TimeRef {
+     fn eq(&self, other: &Asn1Time) -> bool {
+         self.diff(other)
+@@ -255,21 +249,18 @@ impl PartialEq<Asn1Time> for &Asn1TimeRef {
+     }
+ }
+ 
+-#[cfg(any(ossl102, boringssl, awslc))]
+ impl PartialOrd for Asn1TimeRef {
+     fn partial_cmp(&self, other: &Asn1TimeRef) -> Option<Ordering> {
+         self.compare(other).ok()
+     }
+ }
+ 
+-#[cfg(any(ossl102, boringssl, awslc))]
+ impl PartialOrd<Asn1Time> for Asn1TimeRef {
+     fn partial_cmp(&self, other: &Asn1Time) -> Option<Ordering> {
+         self.compare(other).ok()
+     }
+ }
+ 
+-#[cfg(any(ossl102, boringssl, awslc))]
+ impl PartialOrd<Asn1Time> for &Asn1TimeRef {
+     fn partial_cmp(&self, other: &Asn1Time) -> Option<Ordering> {
+         self.compare(other).ok()
+@@ -366,7 +357,6 @@ impl Asn1Time {
+     }
+ }
+ 
+-#[cfg(any(ossl102, boringssl, awslc))]
+ impl PartialEq for Asn1Time {
+     fn eq(&self, other: &Asn1Time) -> bool {
+         self.diff(other)
+@@ -375,7 +365,6 @@ impl PartialEq for Asn1Time {
+     }
+ }
+ 
+-#[cfg(any(ossl102, boringssl, awslc))]
+ impl PartialEq<Asn1TimeRef> for Asn1Time {
+     fn eq(&self, other: &Asn1TimeRef) -> bool {
+         self.diff(other)
+@@ -384,7 +373,6 @@ impl PartialEq<Asn1TimeRef> for Asn1Time {
+     }
+ }
+ 
+-#[cfg(any(ossl102, boringssl, awslc))]
+ impl<'a> PartialEq<&'a Asn1TimeRef> for Asn1Time {
+     fn eq(&self, other: &&'a Asn1TimeRef) -> bool {
+         self.diff(other)
+@@ -393,21 +381,18 @@ impl<'a> PartialEq<&'a Asn1TimeRef> for Asn1Time {
+     }
+ }
+ 
+-#[cfg(any(ossl102, boringssl, awslc))]
+ impl PartialOrd for Asn1Time {
+     fn partial_cmp(&self, other: &Asn1Time) -> Option<Ordering> {
+         self.compare(other).ok()
+     }
+ }
+ 
+-#[cfg(any(ossl102, boringssl, awslc))]
+ impl PartialOrd<Asn1TimeRef> for Asn1Time {
+     fn partial_cmp(&self, other: &Asn1TimeRef) -> Option<Ordering> {
+         self.compare(other).ok()
+     }
+ }
+ 
+-#[cfg(any(ossl102, boringssl, awslc))]
+ impl<'a> PartialOrd<&'a Asn1TimeRef> for Asn1Time {
+     fn partial_cmp(&self, other: &&'a Asn1TimeRef) -> Option<Ordering> {
+         self.compare(other).ok()
+@@ -423,7 +408,7 @@ foreign_type_and_impl_send_sync! {
      /// structures.  This implementation uses [ASN1_STRING-to_UTF8] to preserve
      /// compatibility with Rust's String.
      ///
@@ -113,7 +319,7 @@ index 06df31a03..93bb5b218 100644
      pub struct Asn1String;
      /// A reference to an [`Asn1String`].
      pub struct Asn1StringRef;
-@@ -492,7 +492,7 @@ foreign_type_and_impl_send_sync! {
+@@ -492,7 +477,7 @@ foreign_type_and_impl_send_sync! {
      /// OpenSSL documentation includes [`ASN1_INTEGER_set`].
      ///
      /// [`bn`]: ../bn/index.html
@@ -122,7 +328,7 @@ index 06df31a03..93bb5b218 100644
      pub struct Asn1Integer;
      /// A reference to an [`Asn1Integer`].
      pub struct Asn1IntegerRef;
-@@ -504,7 +504,7 @@ impl Asn1Integer {
+@@ -504,7 +489,7 @@ impl Asn1Integer {
      /// Corresponds to [`BN_to_ASN1_INTEGER`]. Also see
      /// [`BigNumRef::to_asn1_integer`].
      ///
@@ -131,7 +337,7 @@ index 06df31a03..93bb5b218 100644
      /// [`BigNumRef::to_asn1_integer`]: ../bn/struct.BigNumRef.html#method.to_asn1_integer
      pub fn from_bn(bn: &BigNumRef) -> Result<Self, ErrorStack> {
          bn.to_asn1_integer()
-@@ -668,7 +668,7 @@ foreign_type_and_impl_send_sync! {
+@@ -668,7 +653,7 @@ foreign_type_and_impl_send_sync! {
      ///
      /// [`Nid`]: ../nid/index.html
      /// [`nid::COMMONNAME`]: ../nid/constant.COMMONNAME.html
@@ -140,11 +346,72 @@ index 06df31a03..93bb5b218 100644
      pub struct Asn1Object;
      /// A reference to an [`Asn1Object`].
      pub struct Asn1ObjectRef;
+@@ -737,7 +722,7 @@ impl fmt::Debug for Asn1ObjectRef {
+ }
+ 
+ cfg_if! {
+-    if #[cfg(any(ossl110, libressl273, boringssl, awslc))] {
++    if #[cfg(any(ossl110, libressl, boringssl, awslc))] {
+         use ffi::ASN1_STRING_get0_data;
+     } else {
+         #[allow(bad_style)]
+@@ -808,7 +793,6 @@ mod tests {
+     }
+ 
+     #[test]
+-    #[cfg(any(ossl102, boringssl, awslc))]
+     fn time_eq() {
+         let a = Asn1Time::from_str("99991231235959Z").unwrap();
+         let b = Asn1Time::from_str("99991231235959Z").unwrap();
+@@ -827,7 +811,6 @@ mod tests {
+     }
+ 
+     #[test]
+-    #[cfg(any(ossl102, boringssl, awslc))]
+     fn time_ord() {
+         let a = Asn1Time::from_str("99991231235959Z").unwrap();
+         let b = Asn1Time::from_str("99991231235959Z").unwrap();
+diff --git a/src/bio.rs b/src/bio.rs
+index ebd079f..6f0fcca 100644
+--- a/src/bio.rs
++++ b/src/bio.rs
+@@ -1,4 +1,3 @@
+-use cfg_if::cfg_if;
+ use libc::c_int;
+ use std::marker::PhantomData;
+ use std::ptr;
+@@ -23,7 +22,7 @@ impl<'a> MemBioSlice<'a> {
+ 
+         assert!(buf.len() <= c_int::MAX as usize);
+         let bio = unsafe {
+-            cvt_p(BIO_new_mem_buf(
++            cvt_p(ffi::BIO_new_mem_buf(
+                 buf.as_ptr() as *const _,
+                 buf.len() as crate::SLenType,
+             ))?
+@@ -73,17 +72,6 @@ impl MemBio {
+     }
+ }
+ 
+-cfg_if! {
+-    if #[cfg(any(ossl102, boringssl, awslc))] {
+-        use ffi::BIO_new_mem_buf;
+-    } else {
+-        #[allow(bad_style)]
+-        unsafe fn BIO_new_mem_buf(buf: *const ::libc::c_void, len: ::libc::c_int) -> *mut ffi::BIO {
+-            ffi::BIO_new_mem_buf(buf as *mut _, len)
+-        }
+-    }
+-}
+-
+ #[cfg(test)]
+ mod tests {
+     use super::MemBio;
 diff --git a/src/bn.rs b/src/bn.rs
-index 910dae0dd..f9a2abbeb 100644
+index 910dae0..f57bb1f 100644
 --- a/src/bn.rs
 +++ b/src/bn.rs
-@@ -31,9 +31,11 @@ use std::ops::{Add, Deref, Div, Mul, Neg, Rem, Shl, Shr, Sub};
+@@ -31,13 +31,15 @@ use std::ops::{Add, Deref, Div, Mul, Neg, Rem, Shl, Shr, Sub};
  use std::{fmt, ptr};
  
  use crate::asn1::Asn1Integer;
@@ -157,6 +424,20 @@ index 910dae0dd..f9a2abbeb 100644
  use openssl_macros::corresponds;
  
  cfg_if! {
+-    if #[cfg(any(ossl110, libressl350, awslc))] {
++    if #[cfg(any(ossl110, libressl, awslc))] {
+         use ffi::{
+             BN_get_rfc3526_prime_1536, BN_get_rfc3526_prime_2048, BN_get_rfc3526_prime_3072, BN_get_rfc3526_prime_4096,
+             BN_get_rfc3526_prime_6144, BN_get_rfc3526_prime_8192, BN_is_negative,
+@@ -62,7 +64,7 @@ cfg_if! {
+ }
+ 
+ cfg_if! {
+-    if #[cfg(any(ossl110, libressl350))] {
++    if #[cfg(any(ossl110, libressl))] {
+         use ffi::{
+             BN_get_rfc2409_prime_1024, BN_get_rfc2409_prime_768
+         };
 @@ -101,7 +103,7 @@ foreign_type_and_impl_send_sync! {
      /// to allocate.  BigNumContext and the OpenSSL [`BN_CTX`] structure are used
      /// internally when passing BigNum values between subroutines.
@@ -183,6 +464,32 @@ index 910dae0dd..f9a2abbeb 100644
      ///
      /// # Examples
      /// ```
+@@ -347,14 +350,14 @@ impl BigNumRef {
+ 
+     /// Returns `true` is `self` is even.
+     #[corresponds(BN_is_even)]
+-    #[cfg(any(ossl110, boringssl, libressl350, awslc))]
++    #[cfg(any(ossl110, boringssl, libressl, awslc))]
+     pub fn is_even(&self) -> bool {
+         !self.is_odd()
+     }
+ 
+     /// Returns `true` is `self` is odd.
+     #[corresponds(BN_is_odd)]
+-    #[cfg(any(ossl110, boringssl, libressl350, awslc))]
++    #[cfg(any(ossl110, boringssl, libressl, awslc))]
+     pub fn is_odd(&self) -> bool {
+         unsafe { ffi::BN_is_odd(self.as_ptr()) == 1 }
+     }
+@@ -857,7 +860,7 @@ impl BigNumRef {
+     /// assert_eq!(&bn_vec, &[0, 0, 0x45, 0x43]);
+     /// ```
+     #[corresponds(BN_bn2binpad)]
+-    #[cfg(any(ossl110, libressl340, boringssl, awslc))]
++    #[cfg(any(ossl110, libressl, boringssl, awslc))]
+     pub fn to_vec_padded(&self, pad_to: i32) -> Result<Vec<u8>, ErrorStack> {
+         let mut v = Vec::with_capacity(pad_to as usize);
+         unsafe {
 @@ -1104,10 +1107,6 @@ impl BigNum {
  
      /// Creates a new `BigNum` from an unsigned, big-endian encoded number of arbitrary length.
@@ -194,10 +501,28 @@ index 910dae0dd..f9a2abbeb 100644
      /// ```
      /// # use openssl::bn::BigNum;
      /// let bignum = BigNum::from_slice(&[0x12, 0x00, 0x34]).unwrap();
+@@ -1519,7 +1518,7 @@ mod tests {
+     }
+ 
+     #[test]
+-    #[cfg(any(ossl110, boringssl, libressl350, awslc))]
++    #[cfg(any(ossl110, boringssl, libressl, awslc))]
+     fn test_odd_even() {
+         let a = BigNum::from_u32(17).unwrap();
+         let b = BigNum::from_u32(18).unwrap();
 diff --git a/src/cipher.rs b/src/cipher.rs
-index f8ebd4d77..3c70c64fe 100644
+index f8ebd4d..6c6d271 100644
 --- a/src/cipher.rs
 +++ b/src/cipher.rs
+@@ -17,7 +17,7 @@ use std::ops::{Deref, DerefMut};
+ use std::ptr;
+ 
+ cfg_if! {
+-    if #[cfg(any(boringssl, ossl110, libressl273, awslc))] {
++    if #[cfg(any(boringssl, ossl110, libressl, awslc))] {
+         use ffi::{EVP_CIPHER_block_size, EVP_CIPHER_iv_length, EVP_CIPHER_key_length};
+     } else {
+         use libc::c_int;
 @@ -238,6 +238,7 @@ impl Cipher {
          unsafe { CipherRef::from_ptr(ffi::EVP_aes_192_cfb1() as *mut _) }
      }
@@ -214,8 +539,50 @@ index f8ebd4d77..3c70c64fe 100644
      pub fn aes_256_cfb128() -> &'static CipherRef {
          unsafe { CipherRef::from_ptr(ffi::EVP_aes_256_cfb128() as *mut _) }
      }
+@@ -495,7 +497,7 @@ impl Cipher {
+         unsafe { CipherRef::from_ptr(ffi::EVP_idea_ofb() as *mut _) }
+     }
+ 
+-    #[cfg(all(any(ossl110, libressl310), not(osslconf = "OPENSSL_NO_CHACHA")))]
++    #[cfg(all(any(ossl110, libressl), not(osslconf = "OPENSSL_NO_CHACHA")))]
+     pub fn chacha20() -> &'static CipherRef {
+         unsafe { CipherRef::from_ptr(ffi::EVP_chacha20() as *mut _) }
+     }
+@@ -525,27 +527,27 @@ impl Cipher {
+         unsafe { CipherRef::from_ptr(ffi::EVP_seed_ofb() as *mut _) }
+     }
+ 
+-    #[cfg(all(any(ossl111, libressl291), not(osslconf = "OPENSSL_NO_SM4")))]
++    #[cfg(all(any(ossl111, libressl), not(osslconf = "OPENSSL_NO_SM4")))]
+     pub fn sm4_ecb() -> &'static CipherRef {
+         unsafe { CipherRef::from_ptr(ffi::EVP_sm4_ecb() as *mut _) }
+     }
+ 
+-    #[cfg(all(any(ossl111, libressl291), not(osslconf = "OPENSSL_NO_SM4")))]
++    #[cfg(all(any(ossl111, libressl), not(osslconf = "OPENSSL_NO_SM4")))]
+     pub fn sm4_cbc() -> &'static CipherRef {
+         unsafe { CipherRef::from_ptr(ffi::EVP_sm4_cbc() as *mut _) }
+     }
+ 
+-    #[cfg(all(any(ossl111, libressl291), not(osslconf = "OPENSSL_NO_SM4")))]
++    #[cfg(all(any(ossl111, libressl), not(osslconf = "OPENSSL_NO_SM4")))]
+     pub fn sm4_ctr() -> &'static CipherRef {
+         unsafe { CipherRef::from_ptr(ffi::EVP_sm4_ctr() as *mut _) }
+     }
+ 
+-    #[cfg(all(any(ossl111, libressl291), not(osslconf = "OPENSSL_NO_SM4")))]
++    #[cfg(all(any(ossl111, libressl), not(osslconf = "OPENSSL_NO_SM4")))]
+     pub fn sm4_cfb128() -> &'static CipherRef {
+         unsafe { CipherRef::from_ptr(ffi::EVP_sm4_cfb128() as *mut _) }
+     }
+ 
+-    #[cfg(all(any(ossl111, libressl291), not(osslconf = "OPENSSL_NO_SM4")))]
++    #[cfg(all(any(ossl111, libressl), not(osslconf = "OPENSSL_NO_SM4")))]
+     pub fn sm4_ofb() -> &'static CipherRef {
+         unsafe { CipherRef::from_ptr(ffi::EVP_sm4_ofb() as *mut _) }
+     }
 diff --git a/src/cipher_ctx.rs b/src/cipher_ctx.rs
-index dc8887239..815af5b87 100644
+index dc88872..815af5b 100644
 --- a/src/cipher_ctx.rs
 +++ b/src/cipher_ctx.rs
 @@ -735,7 +735,7 @@ mod test {
@@ -228,9 +595,21 @@ index dc8887239..815af5b87 100644
          let public_key = PKey::public_key_from_pem(public_pem).unwrap();
          let cipher = Cipher::aes_256_cbc();
 diff --git a/src/cms.rs b/src/cms.rs
-index a946230a5..163090f9a 100644
+index a946230..45bad89 100644
 --- a/src/cms.rs
 +++ b/src/cms.rs
+@@ -43,9 +43,9 @@ bitflags! {
+         const REUSE_DIGEST = ffi::CMS_REUSE_DIGEST;
+         const USE_KEYID = ffi::CMS_USE_KEYID;
+         const DEBUG_DECRYPT = ffi::CMS_DEBUG_DECRYPT;
+-        #[cfg(all(not(libressl), not(ossl101)))]
++        #[cfg(any(ossl102, libressl))]
+         const KEY_PARAM = ffi::CMS_KEY_PARAM;
+-        #[cfg(all(not(libressl), not(ossl101), not(ossl102)))]
++        #[cfg(any(ossl110, libressl))]
+         const ASCIICRLF = ffi::CMS_ASCIICRLF;
+     }
+ }
 @@ -206,9 +206,6 @@ impl CmsContentInfo {
      /// Given a certificate stack `certs`, data `data`, cipher `cipher` and flags `flags`,
      /// create a CmsContentInfo struct.
@@ -241,8 +620,17 @@ index a946230a5..163090f9a 100644
      #[corresponds(CMS_encrypt)]
      pub fn encrypt(
          certs: &StackRef<X509>,
+@@ -231,7 +228,7 @@ impl CmsContentInfo {
+     }
+ 
+     /// Verify this CmsContentInfo's signature,
+-    /// This will search the 'certs' list for the signing certificate.      
++    /// This will search the 'certs' list for the signing certificate.
+     /// Additional certificates, needed for building the certificate chain, may be
+     /// given in 'store' as well as additional CRLs.
+     /// A detached signature may be passed in `detached_data`. The signed content
 diff --git a/src/derive.rs b/src/derive.rs
-index 90a5650c0..e0d35720b 100644
+index 90a5650..e0d3572 100644
 --- a/src/derive.rs
 +++ b/src/derive.rs
 @@ -67,10 +67,7 @@ unsafe impl Send for Deriver<'_> {}
@@ -283,7 +671,7 @@ index 90a5650c0..e0d35720b 100644
          let mut len = buf.len();
          unsafe {
 diff --git a/src/dh.rs b/src/dh.rs
-index 92ea04424..09f75a7b8 100644
+index 92ea044..780927b 100644
 --- a/src/dh.rs
 +++ b/src/dh.rs
 @@ -1,14 +1,32 @@
@@ -330,7 +718,7 @@ index 92ea04424..09f75a7b8 100644
  }
  
  impl<T> DhRef<T>
-@@ -28,29 +49,56 @@ where
+@@ -28,29 +49,59 @@ where
          /// Serializes the parameters into a PEM-encoded PKCS#3 DHparameter structure.
          ///
          /// The output will have a header of `-----BEGIN DH PARAMETERS-----`.
@@ -376,8 +764,11 @@ index 92ea04424..09f75a7b8 100644
 +                pub fn check_key(&self) -> Result<bool, ErrorStack> {
 +                     return match self.0.check_key() {
 +                        Ok(_) => Ok(true),
-+                        Err(e) if e.errors().is_empty() => Ok(false),
-+                        Err(e) => Err(e),
++                        Err(_) => {
++                          // DH_check never placed errors on the stack, but EVP_PKEY_check in turn calls DH_CHECK_ex
++                          // which does, so return false to maintain compatability with existing code
++                          Ok(false)
++                        },
 +                    };
 +                }
 +
@@ -386,7 +777,7 @@ index 92ea04424..09f75a7b8 100644
 +                #[cfg(not(ossl300))]
 +                pub fn check_key(&self) -> Result<bool, ErrorStack> {
 +                    let mut codes = 0;
-+                    cvt(ffi::DH_check(self.as_ptr(), &mut codes))?;
++                    cvt(unsafe { ffi::DH_check(self.as_ptr(), &mut codes) })?;
 +                    Ok(codes == 0)
 +                }
 +            }
@@ -399,7 +790,7 @@ index 92ea04424..09f75a7b8 100644
  impl Dh<Params> {
      pub fn from_params(p: BigNum, g: BigNum, q: BigNum) -> Result<Dh<Params>, ErrorStack> {
          Self::from_pqg(p, Some(q), g)
-@@ -63,6 +111,20 @@ impl Dh<Params> {
+@@ -63,6 +114,20 @@ impl Dh<Params> {
          prime_q: Option<BigNum>,
          generator: BigNum,
      ) -> Result<Dh<Params>, ErrorStack> {
@@ -412,7 +803,7 @@ index 92ea04424..09f75a7b8 100644
 +                builder.add_bn(OSSL_PKEY_PARAM_FFC_Q, q)?;
 +            };
 +            let params = builder.to_param()?;
-+            let pkey = pkey_from_params(Id::DH, &params)?;
++            let pkey = pkey_from_params(prime_q.map_or_else(|| Id::DH, |_| Id::DHX), &params)?;
 +            pkey.dh()
 +        };
 +
@@ -420,7 +811,7 @@ index 92ea04424..09f75a7b8 100644
          unsafe {
              let dh = Dh::from_ptr(cvt_p(ffi::DH_new())?);
              cvt(DH_set0_pqg(
-@@ -78,6 +140,18 @@ impl Dh<Params> {
+@@ -78,6 +143,18 @@ impl Dh<Params> {
  
      /// Sets the public key on the DH object.
      pub fn set_public_key(self, pub_key: BigNum) -> Result<Dh<Public>, ErrorStack> {
@@ -431,7 +822,7 @@ index 92ea04424..09f75a7b8 100644
 +            builder.add_bn(OSSL_PKEY_PARAM_PUB_KEY, &pub_key)?;
 +            let params = builder.to_param()?;
 +            let params = key_params.merge(&params)?;
-+            let pkey = pkey_from_params(Id::DH, &params)?;
++            let pkey = pkey_from_params(self.0.id(), &params)?;
 +            pkey.dh()
 +        };
 +
@@ -439,7 +830,7 @@ index 92ea04424..09f75a7b8 100644
          unsafe {
              let dh_ptr = self.0;
              cvt(DH_set0_key(dh_ptr, pub_key.as_ptr(), ptr::null_mut()))?;
-@@ -88,6 +162,25 @@ impl Dh<Params> {
+@@ -88,6 +165,25 @@ impl Dh<Params> {
  
      /// Sets the private key on the DH object and recomputes the public key.
      pub fn set_private_key(self, priv_key: BigNum) -> Result<Dh<Private>, ErrorStack> {
@@ -450,10 +841,10 @@ index 92ea04424..09f75a7b8 100644
 +            builder.add_bn(OSSL_PKEY_PARAM_PRIV_KEY, &priv_key)?;
 +            let params = builder.to_param()?;
 +            let params = key_params.merge(&params)?;
-+            let pkey: PKey<Private> = pkey_from_params(Id::DH, &params)?;
++            let pkey: PKey<Private> = pkey_from_params(self.0.id(), &params)?;
 +            // In lieu of a non-deprecated way to recompute the public key, bounce through PKCS8 as
 +            // this causes the public key to be re-computed.
-+            // See: https://github.com/openssl/openssl/issues/21315#issuecomment-1618314607
++            // See: https://github.com/issues/21315#issuecomment-1618314607
 +            let pkcs8 = cvt_p(unsafe { ffi::EVP_PKEY2PKCS8(pkey.as_ptr()) })?;
 +            let pkey_ptr = cvt_p(unsafe { ffi::EVP_PKCS82PKEY(pkcs8) })?;
 +            unsafe { ffi::PKCS8_PRIV_KEY_INFO_free(pkcs8) };
@@ -465,7 +856,7 @@ index 92ea04424..09f75a7b8 100644
          unsafe {
              let dh_ptr = self.0;
              cvt(DH_set0_key(dh_ptr, ptr::null_mut(), priv_key.as_ptr()))?;
-@@ -101,6 +194,19 @@ impl Dh<Params> {
+@@ -101,6 +197,19 @@ impl Dh<Params> {
  
      /// Sets the public and private keys on the DH object.
      pub fn set_key(self, pub_key: BigNum, priv_key: BigNum) -> Result<Dh<Private>, ErrorStack> {
@@ -477,7 +868,7 @@ index 92ea04424..09f75a7b8 100644
 +            builder.add_bn(OSSL_PKEY_PARAM_PRIV_KEY, &priv_key)?;
 +            let params = builder.to_param()?;
 +            let params = key_params.merge(&params)?;
-+            let pkey = pkey_from_params(Id::DH, &params)?;
++            let pkey = pkey_from_params(self.0.id(), &params)?;
 +            pkey.dh()
 +        };
 +
@@ -485,7 +876,7 @@ index 92ea04424..09f75a7b8 100644
          unsafe {
              let dh_ptr = self.0;
              cvt(DH_set0_key(dh_ptr, pub_key.as_ptr(), priv_key.as_ptr()))?;
-@@ -112,6 +218,17 @@ impl Dh<Params> {
+@@ -112,6 +221,17 @@ impl Dh<Params> {
      /// Generates DH params based on the given `prime_len` and a fixed `generator` value.
      #[corresponds(DH_generate_parameters_ex)]
      pub fn generate_params(prime_len: u32, generator: u32) -> Result<Dh<Params>, ErrorStack> {
@@ -503,7 +894,7 @@ index 92ea04424..09f75a7b8 100644
          unsafe {
              let dh = Dh::from_ptr(cvt_p(ffi::DH_new())?);
              cvt(ffi::DH_generate_parameters_ex(
-@@ -127,6 +244,15 @@ impl Dh<Params> {
+@@ -127,6 +247,15 @@ impl Dh<Params> {
      /// Generates a public and a private key based on the DH params.
      #[corresponds(DH_generate_key)]
      pub fn generate_key(self) -> Result<Dh<Private>, ErrorStack> {
@@ -519,7 +910,7 @@ index 92ea04424..09f75a7b8 100644
          unsafe {
              let dh_ptr = self.0;
              cvt(ffi::DH_generate_key(dh_ptr))?;
-@@ -139,24 +265,39 @@ impl Dh<Params> {
+@@ -139,24 +268,39 @@ impl Dh<Params> {
          /// Deserializes a PEM-encoded PKCS#3 DHpararameters structure.
          ///
          /// The input should have a header of `-----BEGIN DH PARAMETERS-----`.
@@ -552,7 +943,8 @@ index 92ea04424..09f75a7b8 100644
 +
      /// Requires OpenSSL 1.0.2 or newer.
      #[corresponds(DH_get_1024_160)]
-     #[cfg(any(ossl102, ossl110))]
+-    #[cfg(any(ossl102, ossl110))]
++    #[cfg(ossl102)]
      pub fn get_1024_160() -> Result<Dh<Params>, ErrorStack> {
 +        #[cfg(ossl300)]
 +        return Self::get_group("dh_1024_160");
@@ -561,9 +953,12 @@ index 92ea04424..09f75a7b8 100644
          unsafe {
              ffi::init();
              cvt_p(ffi::DH_get_1024_160()).map(|p| Dh::from_ptr(p))
-@@ -167,6 +308,10 @@ impl Dh<Params> {
+@@ -165,8 +309,12 @@ impl Dh<Params> {
+ 
+     /// Requires OpenSSL 1.0.2 or newer.
      #[corresponds(DH_get_2048_224)]
-     #[cfg(any(ossl102, ossl110))]
+-    #[cfg(any(ossl102, ossl110))]
++    #[cfg(ossl102)]
      pub fn get_2048_224() -> Result<Dh<Params>, ErrorStack> {
 +        #[cfg(ossl300)]
 +        return Self::get_group("dh_2048_224");
@@ -572,9 +967,12 @@ index 92ea04424..09f75a7b8 100644
          unsafe {
              ffi::init();
              cvt_p(ffi::DH_get_2048_224()).map(|p| Dh::from_ptr(p))
-@@ -177,6 +322,10 @@ impl Dh<Params> {
+@@ -175,8 +323,12 @@ impl Dh<Params> {
+ 
+     /// Requires OpenSSL 1.0.2 or newer.
      #[corresponds(DH_get_2048_256)]
-     #[cfg(any(ossl102, ossl110))]
+-    #[cfg(any(ossl102, ossl110))]
++    #[cfg(ossl102)]
      pub fn get_2048_256() -> Result<Dh<Params>, ErrorStack> {
 +        #[cfg(ossl300)]
 +        return Self::get_group("dh_2048_256");
@@ -583,7 +981,7 @@ index 92ea04424..09f75a7b8 100644
          unsafe {
              ffi::init();
              cvt_p(ffi::DH_get_2048_256()).map(|p| Dh::from_ptr(p))
-@@ -189,20 +338,26 @@ where
+@@ -189,20 +341,35 @@ where
      T: HasParams,
  {
      /// Returns the prime `p` from the DH instance.
@@ -606,7 +1004,16 @@ index 92ea04424..09f75a7b8 100644
      pub fn prime_q(&self) -> Option<&BigNumRef> {
 -        let mut q = ptr::null();
 +        #[cfg(ossl300)]
-+        return self.0.get_bn_param(OSSL_PKEY_PARAM_FFC_Q).ok();
++        return {
++            // EVP_KEY_fromdata will fill in Q for known parameter groups even if it wasn't set
++            // (i.e.: we loaded a DH key). Preserve this behaviour where Q is not available for DH
++            // keys by returning None if the key type is DH.
++            if self.0.id() == Id::DH {
++                None
++            } else {
++                self.0.get_bn_param(OSSL_PKEY_PARAM_FFC_Q).ok()
++            }
++        };
 +
 +        #[cfg(not(ossl300))]
          unsafe {
@@ -614,7 +1021,7 @@ index 92ea04424..09f75a7b8 100644
              DH_get0_pqg(self.as_ptr(), ptr::null_mut(), &mut q, ptr::null_mut());
              if q.is_null() {
                  None
-@@ -213,10 +368,13 @@ where
+@@ -213,10 +371,13 @@ where
      }
  
      /// Returns the generator from the DH instance.
@@ -630,7 +1037,7 @@ index 92ea04424..09f75a7b8 100644
              DH_get0_pqg(self.as_ptr(), ptr::null_mut(), ptr::null_mut(), &mut g);
              BigNumRef::from_ptr(g as *mut _)
          }
-@@ -228,16 +386,21 @@ where
+@@ -228,16 +389,21 @@ where
      T: HasPublic,
  {
      /// Returns the public key from the DH instance.
@@ -654,7 +1061,7 @@ index 92ea04424..09f75a7b8 100644
  impl<T> DhRef<T>
  where
      T: HasPrivate,
-@@ -245,6 +408,29 @@ where
+@@ -245,6 +411,29 @@ where
      /// Computes a shared secret from the own private key and the given `public_key`.
      #[corresponds(DH_compute_key)]
      pub fn compute_key(&self, public_key: &BigNumRef) -> Result<Vec<u8>, ErrorStack> {
@@ -669,7 +1076,7 @@ index 92ea04424..09f75a7b8 100644
 +            builder.add_bn(OSSL_PKEY_PARAM_FFC_G, dh_self.generator())?;
 +            builder.add_bn(OSSL_PKEY_PARAM_PUB_KEY, public_key)?;
 +            let params = builder.to_param()?;
-+            let peer_key: PKey<Public> = pkey_from_params(Id::DH, &params)?;
++            let peer_key: PKey<Public> = pkey_from_params(self.0.id(), &params)?;
 +
 +            // Derive the shared secret
 +            let mut ctx = PkeyCtx::new(&self.0)?;
@@ -684,7 +1091,7 @@ index 92ea04424..09f75a7b8 100644
          unsafe {
              let key_len = ffi::DH_size(self.as_ptr());
              let mut key = vec![0u8; key_len as usize];
-@@ -258,16 +444,22 @@ where
+@@ -258,18 +447,24 @@ where
      }
  
      /// Returns the private key from the DH instance.
@@ -707,9 +1114,12 @@ index 92ea04424..09f75a7b8 100644
 +
 +#[cfg(not(ossl300))]
  cfg_if! {
-     if #[cfg(any(ossl110, libressl270, boringssl, awslc))] {
+-    if #[cfg(any(ossl110, libressl270, boringssl, awslc))] {
++    if #[cfg(any(ossl110, libressl, boringssl, awslc))] {
          use ffi::{DH_set0_pqg, DH_get0_pqg, DH_get0_key, DH_set0_key};
-@@ -371,12 +563,8 @@ mod tests {
+     } else {
+         #[allow(bad_style)]
+@@ -371,12 +566,8 @@ mod tests {
              "8CF83642A709A097B447997640129DA299B1A47D1EB3750BA308B0FE64F5FBD3",
          )
          .unwrap();
@@ -724,17 +1134,37 @@ index 92ea04424..09f75a7b8 100644
          ctx.set_tmp_dh(&dh).unwrap();
  
          assert_eq!(dh.prime_p(), &prime_p);
-@@ -495,5 +683,8 @@ mod tests {
+@@ -494,6 +692,27 @@ mod tests {
+         let g = BigNum::from_hex_str("02").unwrap();
          let dh2 = Dh::from_pqg(p, None, g).unwrap();
          assert!(dh1.check_key().unwrap());
-         assert!(matches!(dh2.check_key(), Ok(false) | Err(_)));
+-        assert!(matches!(dh2.check_key(), Ok(false) | Err(_)));
++        assert!(!dh2.check_key().unwrap());
 +
 +        let dh3 = dh1.generate_key().unwrap();
 +        assert!(dh3.check_key().unwrap());
++    }
++
++    #[test]
++    fn test_roundtrip_dh_key() {
++        let p = BigNum::from_hex_str("00FFFFFFFFFFFFFFFFC90FDAA22168C234C4C6628B80DC1CD129024E088A67CC74020BBEA63B139B22514A08798E3404DDEF9519B3CD3A431B302B0A6DF25F14374FE1356D6D51C245E485B576625E7EC6F44C42E9A637ED6B0BFF5CB6F406B7EDEE386BFB5A899FA5AE9F24117C4B1FE649286651ECE45B3DC2007CB8A163BF0598DA48361C55D39A69163FA8FD24CF5F83655D23DCA3AD961C62F356208552BB9ED529077096966D670C354E4ABC9804F1746C08CA18217C32905E462E36CE3BE39E772C180E86039B2783A2EC07A28FB5C55DF06F4C52C9DE2BCBF6955817183995497CEA956AE515D2261898FA051015728E5A8AACAA68FFFFFFFFFFFFFFFF").unwrap();
++        let g = BigNum::from_u32(2).unwrap();
++
++        let params1 = Dh::from_pqg(p, None, g).unwrap();
++        let params2 = Dh::from_pqg(
++            params1.prime_p().to_owned().unwrap(),
++            params1.prime_q().map(|q| q.to_owned().unwrap()),
++            params1.generator().to_owned().unwrap(),
++        )
++        .unwrap();
++        assert_eq!(
++            PKey::from_dh(params1).unwrap().id(),
++            PKey::from_dh(params2).unwrap().id()
++        );
      }
  }
 diff --git a/src/dsa.rs b/src/dsa.rs
-index cceda212c..d5325d733 100644
+index cceda21..6b4e9b7 100644
 --- a/src/dsa.rs
 +++ b/src/dsa.rs
 @@ -7,17 +7,34 @@
@@ -742,7 +1172,7 @@ index cceda212c..d5325d733 100644
  use cfg_if::cfg_if;
  use foreign_types::{ForeignType, ForeignTypeRef};
 -#[cfg(not(any(boringssl, awslc)))]
-+#[cfg(not(any(boringssl, awslc, ossl110)))]
++#[cfg(not(any(ossl110, libressl273, boringssl, awslc)))]
  use libc::c_int;
  use std::fmt;
  use std::mem;
@@ -1067,14 +1497,26 @@ index cceda212c..d5325d733 100644
          unsafe {
              let dsa = Dsa::from_ptr(cvt_p(ffi::DSA_new())?);
              cvt(DSA_set0_pqg(dsa.0, p.as_ptr(), q.as_ptr(), g.as_ptr()))?;
-@@ -314,6 +419,7 @@ impl<T> fmt::Debug for Dsa<T> {
+@@ -314,8 +419,9 @@ impl<T> fmt::Debug for Dsa<T> {
      }
  }
  
 +#[cfg(not(ossl300))]
  cfg_if! {
-     if #[cfg(any(ossl110, libressl273, boringssl, awslc))] {
+-    if #[cfg(any(ossl110, libressl273, boringssl, awslc))] {
++    if #[cfg(any(ossl110, libressl, boringssl, awslc))] {
          use ffi::{DSA_get0_key, DSA_get0_pqg, DSA_set0_key, DSA_set0_pqg};
+     } else {
+         #[allow(bad_style)]
+@@ -494,7 +600,7 @@ impl DsaSigRef {
+ }
+ 
+ cfg_if! {
+-    if #[cfg(any(ossl110, libressl273, boringssl, awslc))] {
++    if #[cfg(any(ossl110, libressl, boringssl, awslc))] {
+         use ffi::{DSA_SIG_set0, DSA_SIG_get0};
+     } else {
+         #[allow(bad_style)]
 @@ -533,12 +639,14 @@ cfg_if! {
  mod test {
      use super::*;
@@ -1176,7 +1618,7 @@ index cceda212c..d5325d733 100644
 +    }
  }
 diff --git a/src/ec.rs b/src/ec.rs
-index a52bb6708..cde7285ce 100644
+index a52bb67..3bdae07 100644
 --- a/src/ec.rs
 +++ b/src/ec.rs
 @@ -21,10 +21,24 @@ use libc::c_int;
@@ -1239,6 +1681,33 @@ index a52bb6708..cde7285ce 100644
      pub fn components_gf2m(
          &self,
          p: &mut BigNumRef,
+@@ -240,7 +255,7 @@ impl EcGroupRef {
+ 
+     /// Returns the number of bits in the group order.
+     #[corresponds(EC_GROUP_order_bits)]
+-    #[cfg(ossl110)]
++    #[cfg(any(ossl110, libressl, awslc, boringssl))]
+     pub fn order_bits(&self) -> u32 {
+         unsafe { ffi::EC_GROUP_order_bits(self.as_ptr()) as u32 }
+     }
+@@ -293,7 +308,7 @@ impl EcGroupRef {
+     /// Sets the flag determining if the group corresponds to a named curve or must be explicitly
+     /// parameterized.
+     ///
+-    /// This defaults to `EXPLICIT_CURVE` in OpenSSL 1.0.1 and 1.0.2, but `NAMED_CURVE` in OpenSSL
++    /// This defaults to `EXPLICIT_CURVE` in OpenSSL 1.0.2, but `NAMED_CURVE` in OpenSSL
+     /// 1.1.0.
+     #[corresponds(EC_GROUP_set_asn1_flag)]
+     pub fn set_asn1_flag(&mut self, flag: Asn1Flag) {
+@@ -519,7 +534,7 @@ impl EcPointRef {
+     /// Places affine coordinates of a curve over a prime field in the provided
+     /// `x` and `y` `BigNum`s.
+     #[corresponds(EC_POINT_get_affine_coordinates)]
+-    #[cfg(any(ossl111, boringssl, libressl350, awslc))]
++    #[cfg(any(ossl111, boringssl, libressl, awslc))]
+     pub fn affine_coordinates(
+         &self,
+         group: &EcGroupRef,
 @@ -542,6 +557,7 @@ impl EcPointRef {
      /// Places affine coordinates of a curve over a prime field in the provided
      /// `x` and `y` `BigNum`s
@@ -1265,7 +1734,7 @@ index a52bb6708..cde7285ce 100644
 +    /// Sets affine coordinates of a point on an elliptic curve using the provided
 +    /// `x` and `y` `BigNum`s
 +    #[corresponds(EC_POINT_set_affine_coordinates)]
-+    #[cfg(any(ossl111, boringssl, libressl350, awslc))]
++    #[cfg(any(ossl111, boringssl, libressl, awslc))]
 +    pub fn set_affine_coordinates(
 +        &mut self,
 +        group: &EcGroupRef,
@@ -1783,7 +2252,7 @@ index a52bb6708..cde7285ce 100644
 +    }
 +
 +    #[test]
-+    #[cfg(any(ossl111, boringssl, libressl350, awslc))]
++    #[cfg(any(ossl111, boringssl, libressl, awslc))]
 +    fn ec_point_set_affine() {
 +        set_affine_coords_test(EcPointRef::set_affine_coordinates)
 +    }
@@ -1811,6 +2280,15 @@ index a52bb6708..cde7285ce 100644
  
          let order = BigNum::from_hex_str(
              "FFFFFFFF00000000FFFFFFFFFFFFFFFFBCE6FAADA7179E84F3B9CAC2FC632551",
+@@ -1260,7 +1551,7 @@ mod test {
+         assert!(ec_key.check_key().is_ok());
+     }
+ 
+-    #[cfg(any(ossl111, boringssl, libressl350, awslc))]
++    #[cfg(any(ossl111, boringssl, libressl, awslc))]
+     #[test]
+     fn get_affine_coordinates() {
+         let group = EcGroup::from_curve_name(Nid::X9_62_PRIME256V1).unwrap();
 @@ -1302,9 +1593,16 @@ mod test {
          let mut ybn2 = BigNum::new().unwrap();
          let mut ctx = BigNumContext::new().unwrap();
@@ -1831,8 +2309,17 @@ index a52bb6708..cde7285ce 100644
          assert_eq!(xbn2, xbn);
          assert_eq!(ybn2, ybn);
      }
+@@ -1336,7 +1634,7 @@ mod test {
+     }
+ 
+     #[test]
+-    #[cfg(any(boringssl, ossl111, libressl350, awslc))]
++    #[cfg(any(boringssl, ossl111, libressl, awslc))]
+     fn asn1_flag() {
+         let group = EcGroup::from_curve_name(Nid::X9_62_PRIME256V1).unwrap();
+         let flag = group.asn1_flag();
 diff --git a/src/ecdsa.rs b/src/ecdsa.rs
-index 0d962c718..51fd3faae 100644
+index 0d962c7..0ea35dd 100644
 --- a/src/ecdsa.rs
 +++ b/src/ecdsa.rs
 @@ -2,18 +2,31 @@
@@ -1928,8 +2415,12 @@ index 0d962c718..51fd3faae 100644
      }
  
      /// Returns internal component: `r` of an `EcdsaSig`. (See X9.62 or FIPS 186-2)
-@@ -113,6 +121,8 @@ cfg_if! {
-     if #[cfg(any(ossl110, libressl273, boringssl, awslc))] {
+@@ -110,9 +118,11 @@ impl EcdsaSigRef {
+ }
+ 
+ cfg_if! {
+-    if #[cfg(any(ossl110, libressl273, boringssl, awslc))] {
++    if #[cfg(any(ossl110, libressl, boringssl, awslc))] {
          use ffi::{ECDSA_SIG_set0, ECDSA_SIG_get0};
      } else {
 +        use libc::c_int;
@@ -1938,10 +2429,19 @@ index 0d962c718..51fd3faae 100644
          unsafe fn ECDSA_SIG_set0(
              sig: *mut ffi::ECDSA_SIG,
 diff --git a/src/encrypt.rs b/src/encrypt.rs
-index cd08d6530..59d94ace3 100644
+index cd08d65..7cadb31 100644
 --- a/src/encrypt.rs
 +++ b/src/encrypt.rs
-@@ -49,6 +49,7 @@ use crate::pkey::{HasPrivate, HasPublic, PKeyRef};
+@@ -39,8 +39,6 @@
+ //! decrypted.truncate(decrypted_len);
+ //! assert_eq!(&*decrypted, data);
+ //! ```
+-#[cfg(any(ossl102, libressl310))]
+-use libc::c_int;
+ use std::{marker::PhantomData, ptr};
+ 
+ use crate::error::ErrorStack;
+@@ -49,6 +47,7 @@ use crate::pkey::{HasPrivate, HasPublic, PKeyRef};
  use crate::rsa::Padding;
  use crate::{cvt, cvt_p};
  use foreign_types::ForeignTypeRef;
@@ -1949,7 +2449,7 @@ index cd08d6530..59d94ace3 100644
  
  /// A type which encrypts data.
  pub struct Encrypter<'a> {
-@@ -69,10 +70,7 @@ impl Drop for Encrypter<'_> {
+@@ -69,10 +68,7 @@ impl Drop for Encrypter<'_> {
  
  impl<'a> Encrypter<'a> {
      /// Creates a new `Encrypter`.
@@ -1961,7 +2461,7 @@ index cd08d6530..59d94ace3 100644
      pub fn new<T>(pkey: &'a PKeyRef<T>) -> Result<Encrypter<'a>, ErrorStack>
      where
          T: HasPublic,
-@@ -110,10 +108,7 @@ impl<'a> Encrypter<'a> {
+@@ -110,10 +106,7 @@ impl<'a> Encrypter<'a> {
      /// Sets the RSA padding mode.
      ///
      /// This is only useful for RSA keys.
@@ -1973,7 +2473,7 @@ index cd08d6530..59d94ace3 100644
      pub fn set_rsa_padding(&mut self, padding: Padding) -> Result<(), ErrorStack> {
          unsafe {
              cvt(ffi::EVP_PKEY_CTX_set_rsa_padding(
-@@ -127,10 +122,7 @@ impl<'a> Encrypter<'a> {
+@@ -127,10 +120,7 @@ impl<'a> Encrypter<'a> {
      /// Sets the RSA MGF1 algorithm.
      ///
      /// This is only useful for RSA keys.
@@ -1985,7 +2485,7 @@ index cd08d6530..59d94ace3 100644
      pub fn set_rsa_mgf1_md(&mut self, md: MessageDigest) -> Result<(), ErrorStack> {
          unsafe {
              cvt(ffi::EVP_PKEY_CTX_set_rsa_mgf1_md(
-@@ -144,10 +136,7 @@ impl<'a> Encrypter<'a> {
+@@ -144,11 +134,7 @@ impl<'a> Encrypter<'a> {
      /// Sets the RSA OAEP algorithm.
      ///
      /// This is only useful for RSA keys.
@@ -1993,11 +2493,12 @@ index cd08d6530..59d94ace3 100644
 -    /// This corresponds to [`EVP_PKEY_CTX_set_rsa_oaep_md`].
 -    ///
 -    /// [`EVP_PKEY_CTX_set_rsa_oaep_md`]: https://www.openssl.org/docs/manmaster/man3/EVP_PKEY_CTX_set_rsa_oaep_md.html
+-    #[cfg(any(ossl102, libressl310, boringssl, awslc))]
 +    #[corresponds(EVP_PKEY_CTX_set_rsa_oaep_md)]
-     #[cfg(any(ossl102, libressl310, boringssl, awslc))]
      pub fn set_rsa_oaep_md(&mut self, md: MessageDigest) -> Result<(), ErrorStack> {
          unsafe {
-@@ -162,10 +151,7 @@ impl<'a> Encrypter<'a> {
+             cvt(ffi::EVP_PKEY_CTX_set_rsa_oaep_md(
+@@ -162,11 +148,7 @@ impl<'a> Encrypter<'a> {
      /// Sets the RSA OAEP label.
      ///
      /// This is only useful for RSA keys.
@@ -2005,11 +2506,23 @@ index cd08d6530..59d94ace3 100644
 -    /// This corresponds to [`EVP_PKEY_CTX_set0_rsa_oaep_label`].
 -    ///
 -    /// [`EVP_PKEY_CTX_set0_rsa_oaep_label`]: https://www.openssl.org/docs/manmaster/man3/EVP_PKEY_CTX_set0_rsa_oaep_label.html
+-    #[cfg(any(ossl102, libressl310))]
 +    #[corresponds(EVP_PKEY_CTX_set0_rsa_oaep_label)]
-     #[cfg(any(ossl102, libressl310))]
      pub fn set_rsa_oaep_label(&mut self, label: &[u8]) -> Result<(), ErrorStack> {
          unsafe {
-@@ -215,9 +201,7 @@ impl<'a> Encrypter<'a> {
+             let p = cvt_p(ffi::OPENSSL_malloc(label.len() as _))?;
+@@ -174,8 +156,8 @@ impl<'a> Encrypter<'a> {
+ 
+             cvt(ffi::EVP_PKEY_CTX_set0_rsa_oaep_label(
+                 self.pctx,
+-                p,
+-                label.len() as c_int,
++                p.cast(),
++                label.len() as _,
+             ))
+             .map(|_| ())
+             .map_err(|e| {
+@@ -215,9 +197,7 @@ impl<'a> Encrypter<'a> {
      /// let encoded = &encoded[..encoded_len];
      /// ```
      ///
@@ -2020,7 +2533,7 @@ index cd08d6530..59d94ace3 100644
      pub fn encrypt(&self, from: &[u8], to: &mut [u8]) -> Result<usize, ErrorStack> {
          let mut written = to.len();
          unsafe {
-@@ -235,9 +219,8 @@ impl<'a> Encrypter<'a> {
+@@ -235,9 +215,8 @@ impl<'a> Encrypter<'a> {
  
      /// Gets the size of the buffer needed to encrypt the input data.
      ///
@@ -2032,7 +2545,7 @@ index cd08d6530..59d94ace3 100644
      pub fn encrypt_len(&self, from: &[u8]) -> Result<usize, ErrorStack> {
          let mut written = 0;
          unsafe {
-@@ -273,10 +256,7 @@ impl Drop for Decrypter<'_> {
+@@ -273,10 +252,7 @@ impl Drop for Decrypter<'_> {
  
  impl<'a> Decrypter<'a> {
      /// Creates a new `Decrypter`.
@@ -2044,7 +2557,7 @@ index cd08d6530..59d94ace3 100644
      pub fn new<T>(pkey: &'a PKeyRef<T>) -> Result<Decrypter<'a>, ErrorStack>
      where
          T: HasPrivate,
-@@ -314,10 +294,7 @@ impl<'a> Decrypter<'a> {
+@@ -314,10 +290,7 @@ impl<'a> Decrypter<'a> {
      /// Sets the RSA padding mode.
      ///
      /// This is only useful for RSA keys.
@@ -2056,7 +2569,7 @@ index cd08d6530..59d94ace3 100644
      pub fn set_rsa_padding(&mut self, padding: Padding) -> Result<(), ErrorStack> {
          unsafe {
              cvt(ffi::EVP_PKEY_CTX_set_rsa_padding(
-@@ -331,10 +308,7 @@ impl<'a> Decrypter<'a> {
+@@ -331,10 +304,7 @@ impl<'a> Decrypter<'a> {
      /// Sets the RSA MGF1 algorithm.
      ///
      /// This is only useful for RSA keys.
@@ -2068,7 +2581,7 @@ index cd08d6530..59d94ace3 100644
      pub fn set_rsa_mgf1_md(&mut self, md: MessageDigest) -> Result<(), ErrorStack> {
          unsafe {
              cvt(ffi::EVP_PKEY_CTX_set_rsa_mgf1_md(
-@@ -348,10 +322,7 @@ impl<'a> Decrypter<'a> {
+@@ -348,11 +318,7 @@ impl<'a> Decrypter<'a> {
      /// Sets the RSA OAEP algorithm.
      ///
      /// This is only useful for RSA keys.
@@ -2076,11 +2589,12 @@ index cd08d6530..59d94ace3 100644
 -    /// This corresponds to [`EVP_PKEY_CTX_set_rsa_oaep_md`].
 -    ///
 -    /// [`EVP_PKEY_CTX_set_rsa_oaep_md`]: https://www.openssl.org/docs/manmaster/man3/EVP_PKEY_CTX_set_rsa_oaep_md.html
+-    #[cfg(any(ossl102, libressl310, boringssl, awslc))]
 +    #[corresponds(EVP_PKEY_CTX_set_rsa_oaep_md)]
-     #[cfg(any(ossl102, libressl310, boringssl, awslc))]
      pub fn set_rsa_oaep_md(&mut self, md: MessageDigest) -> Result<(), ErrorStack> {
          unsafe {
-@@ -366,10 +337,7 @@ impl<'a> Decrypter<'a> {
+             cvt(ffi::EVP_PKEY_CTX_set_rsa_oaep_md(
+@@ -366,11 +332,7 @@ impl<'a> Decrypter<'a> {
      /// Sets the RSA OAEP label.
      ///
      /// This is only useful for RSA keys.
@@ -2088,11 +2602,23 @@ index cd08d6530..59d94ace3 100644
 -    /// This corresponds to [`EVP_PKEY_CTX_set0_rsa_oaep_label`].
 -    ///
 -    /// [`EVP_PKEY_CTX_set0_rsa_oaep_label`]: https://www.openssl.org/docs/manmaster/man3/EVP_PKEY_CTX_set0_rsa_oaep_label.html
+-    #[cfg(any(ossl102, libressl310))]
 +    #[corresponds(EVP_PKEY_CTX_set0_rsa_oaep_label)]
-     #[cfg(any(ossl102, libressl310))]
      pub fn set_rsa_oaep_label(&mut self, label: &[u8]) -> Result<(), ErrorStack> {
          unsafe {
-@@ -434,9 +402,7 @@ impl<'a> Decrypter<'a> {
+             let p = cvt_p(ffi::OPENSSL_malloc(label.len() as _))?;
+@@ -378,8 +340,8 @@ impl<'a> Decrypter<'a> {
+ 
+             cvt(ffi::EVP_PKEY_CTX_set0_rsa_oaep_label(
+                 self.pctx,
+-                p,
+-                label.len() as c_int,
++                p.cast(),
++                label.len() as _,
+             ))
+             .map(|_| ())
+             .map_err(|e| {
+@@ -434,9 +396,7 @@ impl<'a> Decrypter<'a> {
      /// let decoded = &decoded[..decoded_len];
      /// ```
      ///
@@ -2103,7 +2629,7 @@ index cd08d6530..59d94ace3 100644
      pub fn decrypt(&self, from: &[u8], to: &mut [u8]) -> Result<usize, ErrorStack> {
          let mut written = to.len();
          unsafe {
-@@ -454,9 +420,8 @@ impl<'a> Decrypter<'a> {
+@@ -454,9 +414,8 @@ impl<'a> Decrypter<'a> {
  
      /// Gets the size of the buffer needed to decrypt the input data.
      ///
@@ -2115,8 +2641,32 @@ index cd08d6530..59d94ace3 100644
      pub fn decrypt_len(&self, from: &[u8]) -> Result<usize, ErrorStack> {
          let mut written = 0;
          unsafe {
+@@ -478,7 +437,6 @@ mod test {
+     use hex::FromHex;
+ 
+     use crate::encrypt::{Decrypter, Encrypter};
+-    #[cfg(any(ossl102, libressl310, boringssl, awslc))]
+     use crate::hash::MessageDigest;
+     use crate::pkey::PKey;
+     use crate::rsa::{Padding, Rsa};
+@@ -513,7 +471,6 @@ mod test {
+     }
+ 
+     #[test]
+-    #[cfg(any(ossl102, libressl310, boringssl, awslc))]
+     fn rsa_encrypt_decrypt_with_sha256() {
+         let key = include_bytes!("../test/rsa.pem");
+         let private_key = Rsa::private_key_from_pem(key).unwrap();
+@@ -544,7 +501,6 @@ mod test {
+     }
+ 
+     #[test]
+-    #[cfg(any(ossl102, libressl310))]
+     fn rsa_encrypt_decrypt_oaep_label() {
+         let key = include_bytes!("../test/rsa.pem");
+         let private_key = Rsa::private_key_from_pem(key).unwrap();
 diff --git a/src/envelope.rs b/src/envelope.rs
-index f6ebc722f..f84216f21 100644
+index f6ebc72..f84216f 100644
 --- a/src/envelope.rs
 +++ b/src/envelope.rs
 @@ -158,7 +158,7 @@ mod test {
@@ -2128,8 +2678,125 @@ index f6ebc722f..f84216f21 100644
          let private_key = PKey::private_key_from_pem(private_pem).unwrap();
          let public_key = PKey::public_key_from_pem(public_pem).unwrap();
          let cipher = Cipher::aes_256_cbc();
+diff --git a/src/hash.rs b/src/hash.rs
+index 5acaf92..2df62d5 100644
+--- a/src/hash.rs
++++ b/src/hash.rs
+@@ -158,7 +158,7 @@ impl MessageDigest {
+         unsafe { MessageDigest(ffi::EVP_ripemd160()) }
+     }
+ 
+-    #[cfg(all(any(ossl111, libressl291), not(osslconf = "OPENSSL_NO_SM3")))]
++    #[cfg(all(any(ossl111, libressl), not(osslconf = "OPENSSL_NO_SM3")))]
+     pub fn sm3() -> MessageDigest {
+         unsafe { MessageDigest(ffi::EVP_sm3()) }
+     }
+@@ -194,7 +194,7 @@ unsafe impl Send for MessageDigest {}
+ enum State {
+     Reset,
+     Updated,
+-    #[cfg(ossl330)]
++    #[cfg(any(ossl330, awslc))]
+     Squeeze,
+     Finalized,
+ }
+@@ -262,7 +262,7 @@ impl Hasher {
+             Updated => {
+                 self.finish()?;
+             }
+-            #[cfg(ossl330)]
++            #[cfg(any(ossl330, awslc))]
+             Squeeze => (),
+             Finalized => (),
+         }
+@@ -304,7 +304,7 @@ impl Hasher {
+ 
+     /// Squeezes buf out of the hasher. Can be called multiple times, unlike `finish_xof`.
+     /// The output will be as long as the buf.
+-    #[cfg(ossl330)]
++    #[cfg(any(ossl330, awslc))]
+     pub fn squeeze_xof(&mut self, buf: &mut [u8]) -> Result<(), ErrorStack> {
+         unsafe {
+             cvt(ffi::EVP_DigestSqueeze(
+@@ -514,7 +514,7 @@ mod tests {
+     }
+ 
+     /// Squeezes the expected length by doing two squeezes.
+-    #[cfg(ossl330)]
++    #[cfg(any(ossl330, awslc))]
+     fn hash_xof_squeeze_test(hashtype: MessageDigest, hashtest: &(&str, &str)) {
+         let data = Vec::from_hex(hashtest.0).unwrap();
+         let mut h = Hasher::new(hashtype).unwrap();
+@@ -584,7 +584,7 @@ mod tests {
+         assert_eq!(&*res, &*null);
+     }
+ 
+-    #[cfg(ossl330)]
++    #[cfg(any(ossl330, awslc))]
+     #[test]
+     fn test_finish_then_squeeze() {
+         let digest = MessageDigest::shake_128();
+@@ -595,7 +595,7 @@ mod tests {
+             .expect_err("squeezing after finalize should fail");
+     }
+ 
+-    #[cfg(ossl330)]
++    #[cfg(any(ossl330, awslc))]
+     #[test]
+     fn test_squeeze_then_update() {
+         let digest = MessageDigest::shake_128();
+@@ -607,15 +607,19 @@ mod tests {
+             .expect_err("updating after squeeze should fail");
+     }
+ 
+-    #[cfg(ossl330)]
++    #[cfg(any(ossl330, awslc))]
+     #[test]
+     fn test_squeeze_then_finalize() {
+         let digest = MessageDigest::shake_128();
+         let mut h = Hasher::new(digest).unwrap();
+         let mut buf = vec![0; digest.size()];
+         h.squeeze_xof(&mut buf).unwrap();
+-        h.finish_xof(&mut buf)
+-            .expect_err("finalize after squeeze should fail");
++        if cfg!(ossl330) {
++            h.finish_xof(&mut buf)
++                .expect_err("finalize after squeeze should fail");
++        } else if cfg!(awslc) {
++            h.finish_xof(&mut buf).unwrap();
++        }
+     }
+ 
+     #[test]
+@@ -791,7 +795,7 @@ mod tests {
+ 
+         for test in tests.iter() {
+             hash_xof_test(MessageDigest::shake_128(), test);
+-            #[cfg(ossl330)]
++            #[cfg(any(ossl330, awslc))]
+             hash_xof_squeeze_test(MessageDigest::shake_128(), test);
+         }
+ 
+@@ -816,7 +820,7 @@ mod tests {
+ 
+         for test in tests.iter() {
+             hash_xof_test(MessageDigest::shake_256(), test);
+-            #[cfg(ossl330)]
++            #[cfg(any(ossl330, awslc))]
+             hash_xof_squeeze_test(MessageDigest::shake_256(), test);
+         }
+ 
+@@ -852,7 +856,7 @@ mod tests {
+         );
+     }
+ 
+-    #[cfg(all(any(ossl111, libressl291), not(osslconf = "OPENSSL_NO_SM3")))]
++    #[cfg(all(any(ossl111, libressl), not(osslconf = "OPENSSL_NO_SM3")))]
+     #[test]
+     fn test_sm3() {
+         let tests = [(
 diff --git a/src/kdf.rs b/src/kdf.rs
-index a5da35250..d3344d541 100644
+index a5da352..e1cbe63 100644
 --- a/src/kdf.rs
 +++ b/src/kdf.rs
 @@ -25,22 +25,59 @@ impl Drop for EvpKdfCtx {
@@ -2201,7 +2868,7 @@ index a5da35250..d3344d541 100644
          #[allow(clippy::too_many_arguments)]
          pub fn argon2id(
              ctx: Option<&LibCtxRef>,
-@@ -48,75 +85,65 @@ cfg_if::cfg_if! {
+@@ -48,75 +85,66 @@ cfg_if::cfg_if! {
              salt: &[u8],
              ad: Option<&[u8]>,
              secret: Option<&[u8]>,
@@ -2224,6 +2891,7 @@ index a5da35250..d3344d541 100644
 +        /// builds with no threads all lanes will be processed sequentially.
 +        ///
 +        /// Requires OpenSSL 3.2.0 or newer.
++        #[allow(clippy::too_many_arguments)]
 +        fn argon2_helper(
 +            kdf_identifier: &CStr,
 +            ctx: Option<&LibCtxRef>,
@@ -2331,7 +2999,7 @@ index a5da35250..d3344d541 100644
                      ptr::null(),
                  ))?);
                  let ctx = EvpKdfCtx(cvt_p(ffi::EVP_KDF_CTX_new(argon2.0))?);
-@@ -161,6 +188,60 @@ mod tests {
+@@ -161,6 +189,60 @@ mod tests {
          assert_eq!(hex::encode(&actual[..]), expected);
      }
  
@@ -2393,9 +3061,19 @@ index a5da35250..d3344d541 100644
      #[cfg(all(ossl320, not(osslconf = "OPENSSL_NO_ARGON2")))]
      fn argon2id_no_ad_secret() {
 diff --git a/src/lib.rs b/src/lib.rs
-index 1afe5de38..ab92e9714 100644
+index 1afe5de..a9e4372 100644
 --- a/src/lib.rs
 +++ b/src/lib.rs
+@@ -1,7 +1,7 @@
+ //! Bindings to OpenSSL
+ //!
+-//! This crate provides a safe interface to the popular OpenSSL cryptography library. OpenSSL versions 1.0.1 through
+-//! 3.x.x and LibreSSL versions 2.5 through 3.7.x are supported.
++//! This crate provides a safe interface to the popular OpenSSL cryptography library. OpenSSL versions 1.0.2 through
++//! 3.x.x and LibreSSL versions 3.5 through 4.2.x are supported.
+ //!
+ //! # Building
+ //!
 @@ -146,6 +146,7 @@ mod macros;
  mod bio;
  #[macro_use]
@@ -2404,7 +3082,15 @@ index 1afe5de38..ab92e9714 100644
  pub mod aes;
  pub mod asn1;
  pub mod base64;
-@@ -177,6 +178,10 @@ pub mod memcmp;
+@@ -171,12 +172,18 @@ pub mod hash;
+ pub mod kdf;
+ #[cfg(ossl300)]
+ pub mod lib_ctx;
++#[cfg(ossl300)]
++pub mod mac;
+ pub mod md;
+ pub mod md_ctx;
+ pub mod memcmp;
  pub mod nid;
  #[cfg(not(osslconf = "OPENSSL_NO_OCSP"))]
  pub mod ocsp;
@@ -2415,8 +3101,288 @@ index 1afe5de38..ab92e9714 100644
  pub mod pkcs12;
  pub mod pkcs5;
  #[cfg(not(any(boringssl, awslc)))]
+diff --git a/src/mac.rs b/src/mac.rs
+new file mode 100644
+index 0000000..0087610
+--- /dev/null
++++ b/src/mac.rs
+@@ -0,0 +1,274 @@
++use crate::cipher::CipherRef;
++use crate::error::ErrorStack;
++use crate::hash::MessageDigest;
++use crate::lib_ctx::LibCtxRef;
++use crate::ossl_param::{OsslParamArray, OsslParamBuilder};
++use crate::{cvt, cvt_p};
++use foreign_types::{ForeignType, ForeignTypeRef};
++use openssl_macros::corresponds;
++use std::ffi::{CStr, CString};
++use std::ptr;
++
++foreign_type_and_impl_send_sync! {
++    type CType = ffi::EVP_MAC;
++    fn drop = ffi::EVP_MAC_free;
++
++    /// A MAC algorithm context
++    pub struct Mac;
++    /// A reference to a [`crate::mac::Mac`].
++    pub struct MacRef;
++}
++
++cstr_const!(OSSL_MAC_PARAM_CIPHER, b"cipher\0");
++cstr_const!(OSSL_MAC_PARAM_DIGEST, b"digest\0");
++
++impl Mac {
++    /// Fetches a MAC object corresponding to the specified algorithm name and properties.
++    ///
++    /// Requires OpenSSL 3.0.0 or newer.
++    #[corresponds(EVP_MAC_fetch)]
++    pub fn fetch(
++        ctx: Option<&LibCtxRef>,
++        algorithm: &str,
++        properties: Option<&str>,
++    ) -> Result<Self, ErrorStack> {
++        ffi::init();
++        let algorithm = CString::new(algorithm).unwrap();
++        let properties = properties.map(|s| CString::new(s).unwrap());
++
++        let ptr = cvt_p(unsafe {
++            ffi::EVP_MAC_fetch(
++                ctx.map_or(ptr::null_mut(), ForeignTypeRef::as_ptr),
++                algorithm.as_ptr(),
++                properties.as_ref().map_or(ptr::null_mut(), |s| s.as_ptr()),
++            )
++        })?;
++
++        Ok(unsafe { Mac::from_ptr(ptr) })
++    }
++
++    pub fn cmac() -> Self {
++        Self::fetch(None, "cmac", None).unwrap()
++    }
++
++    pub fn hmac() -> Self {
++        Self::fetch(None, "hmac", None).unwrap()
++    }
++}
++
++impl MacRef {
++    #[corresponds(EVP_MAC_get0_name)]
++    pub fn name(&self) -> String {
++        let name = unsafe { CStr::from_ptr(ffi::EVP_MAC_get0_name(self.as_ptr())) };
++        String::from_utf8_lossy(name.to_bytes()).into_owned()
++    }
++
++    #[corresponds(EVP_MAC_get0_description)]
++    pub fn description(&self) -> String {
++        let buf = unsafe { ffi::EVP_MAC_get0_description(self.as_ptr()) };
++        if buf.is_null() {
++            String::new()
++        } else {
++            String::from_utf8_lossy(unsafe { CStr::from_ptr(buf).to_bytes() }).into()
++        }
++    }
++}
++
++impl ToOwned for MacRef {
++    type Owned = Mac;
++
++    fn to_owned(&self) -> Self::Owned {
++        unsafe {
++            ffi::EVP_MAC_up_ref(self.as_ptr());
++            Self::Owned::from_ptr(self.as_ptr())
++        }
++    }
++}
++
++foreign_type_and_impl_send_sync! {
++    type CType = ffi::EVP_MAC_CTX;
++    fn drop = ffi::EVP_MAC_CTX_free;
++    fn clone = ffi::EVP_MAC_CTX_dup;
++
++    /// A MAC computation context
++    pub struct MacCtx;
++    /// A reference to a [`crate::mac::MacCtx`].
++    pub struct MacCtxRef;
++}
++
++impl MacCtx {
++    /// Create a `MacCtx` from a `Mac`
++    #[corresponds(EVP_MAC_CTX_new)]
++    pub fn new(mac: &MacRef) -> Result<Self, ErrorStack> {
++        let ctx = cvt_p(unsafe { ffi::EVP_MAC_CTX_new(mac.as_ptr()) })?;
++        Ok(unsafe { MacCtx::from_ptr(ctx) })
++    }
++}
++
++#[allow(clippy::len_without_is_empty)]
++impl MacCtxRef {
++    #[corresponds(EVP_MAC_CTX_get0_mac)]
++    pub fn mac(&self) -> Result<Mac, ErrorStack> {
++        let mac = cvt_p(unsafe { ffi::EVP_MAC_CTX_get0_mac(self.as_ptr()) })?;
++        Ok(unsafe { Mac::from_ptr(mac) })
++    }
++
++    #[corresponds(EVP_MAC_CTX_get_mac_size)]
++    pub fn mac_size(&self) -> usize {
++        unsafe { ffi::EVP_MAC_CTX_get_mac_size(self.as_ptr()) as usize }
++    }
++
++    #[corresponds(EVP_MAC_CTX_get_block_size)]
++    pub fn block_size(&self) -> usize {
++        unsafe { ffi::EVP_MAC_CTX_get_block_size(self.as_ptr()) as usize }
++    }
++
++    /// Initialise the `MacCtx`
++    #[corresponds(EVP_MAC_init)]
++    pub(crate) fn init(
++        &mut self,
++        key: &[u8],
++        params: Option<&OsslParamArray>,
++    ) -> Result<(), ErrorStack> {
++        cvt(unsafe {
++            ffi::EVP_MAC_init(
++                self.as_ptr(),
++                key.as_ptr(),
++                key.len(),
++                params.map_or(ptr::null(), |s| s.as_ptr()),
++            )
++        })
++        .map(|_| ())
++    }
++
++    /// Initialise the `MacCtx` with a cipher parameter
++    pub fn init_cipher(&mut self, key: &[u8], cipher: &CipherRef) -> Result<(), ErrorStack> {
++        let mut builder = OsslParamBuilder::new()?;
++        builder.add_utf8_string(OSSL_MAC_PARAM_CIPHER, cipher.nid().short_name()?)?;
++        let params = builder.to_param()?;
++        self.init(key, Some(&params))
++    }
++
++    /// Initialise the `MacCtx` with a digest parameter
++    pub fn init_digest(&mut self, key: &[u8], digest: &MessageDigest) -> Result<(), ErrorStack> {
++        let mut builder = OsslParamBuilder::new()?;
++        builder.add_utf8_string(OSSL_MAC_PARAM_DIGEST, digest.type_().short_name()?)?;
++        let params = builder.to_param()?;
++        self.init(key, Some(&params))
++    }
++
++    /// Feed data into the `MacCtx`
++    #[corresponds(EVP_MAC_update)]
++    pub fn update(&mut self, data: &[u8]) -> Result<(), ErrorStack> {
++        cvt(unsafe { ffi::EVP_MAC_update(self.as_ptr(), data.as_ptr(), data.len()) }).map(|_| ())
++    }
++
++    /// Computes an upper bound on the MAC length.
++    #[corresponds(EVP_MAC_final)]
++    pub fn len(&mut self) -> Result<usize, ErrorStack> {
++        let mut out_size = 0;
++        cvt(unsafe { ffi::EVP_MAC_final(self.as_ptr(), ptr::null_mut(), &mut out_size, 0) })?;
++
++        Ok(out_size)
++    }
++
++    /// Writes the calculated MAC into the provided buffer, returning the number of bytes written.
++    ///
++    /// This method will fail if the buffer is not large enough for the signature. Use the `len`
++    /// method to get an upper bound on the required size.
++    #[corresponds(EVP_MAC_final)]
++    pub fn finalize(&mut self, out: &mut [u8]) -> Result<usize, ErrorStack> {
++        let mut written = 0;
++        cvt(unsafe {
++            ffi::EVP_MAC_final(self.as_ptr(), out.as_mut_ptr(), &mut written, out.len())
++        })?;
++
++        Ok(written)
++    }
++
++    /// Returns the calculated MAC
++    ///
++    /// This is a convenience wrapper over `len` and `finalize`.
++    pub fn finalize_to_vec(&mut self) -> Result<Vec<u8>, ErrorStack> {
++        let mut out_buf = vec![0u8; self.len()?];
++        self.finalize(&mut out_buf)?;
++        Ok(out_buf)
++    }
++}
++
++#[cfg(test)]
++mod tests {
++    use super::*;
++    use crate::cipher::Cipher;
++    use crate::ossl_param::OsslParamBuilder;
++    use hex::ToHex;
++
++    #[test]
++    fn test_get_mac() {
++        let mac = Mac::fetch(None, "cmac", None).unwrap();
++        assert_eq!(mac.name(), "CMAC");
++        let mac2 = &mac.to_owned();
++        assert_eq!(mac2.description(), "");
++    }
++
++    #[test]
++    fn test_ctx_getters() {
++        let mac = Mac::cmac();
++        let mut ctx = MacCtx::new(&mac).unwrap();
++        assert_eq!(ctx.block_size(), 0);
++        assert_eq!(ctx.mac_size(), 0);
++
++        let cipher = b"aes-256-cbc";
++        let mut param_builder = OsslParamBuilder::new().unwrap();
++        cvt(unsafe {
++            ffi::OSSL_PARAM_BLD_push_utf8_string(
++                param_builder.as_ptr(),
++                CStr::from_bytes_with_nul_unchecked(b"cipher\0").as_ptr(),
++                cipher.as_ptr().cast::<libc::c_char>(),
++                cipher.len(),
++            )
++        })
++        .unwrap();
++        let params = param_builder.to_param().unwrap();
++
++        ctx.init(b"secret0123456789secret0123456789", Some(&params))
++            .unwrap();
++
++        assert_eq!(ctx.block_size(), 16);
++        assert_eq!(ctx.mac_size(), 16);
++    }
++
++    #[test]
++    fn test_cmac() {
++        let mac = Mac::cmac();
++        let mut ctx = MacCtx::new(&mac).unwrap();
++
++        let secret_key = b"secret0123456789";
++        let cipher = Cipher::aes_128_cbc();
++
++        ctx.init_cipher(secret_key, cipher).unwrap();
++        ctx.update(b"foobar").unwrap();
++        let hash = ctx.finalize_to_vec().unwrap();
++        assert_eq!(
++            hash.encode_hex::<String>(),
++            "bf6136dc2ab41ecfe324455203a934b9"
++        );
++    }
++
++    #[test]
++    fn test_hmac() {
++        let mac = Mac::hmac();
++        let mut ctx = MacCtx::new(&mac).unwrap();
++
++        let secret_key = b"secret0123456789";
++        let digest = MessageDigest::sha1();
++
++        ctx.init_digest(secret_key, &digest).unwrap();
++        ctx.update(b"foobar").unwrap();
++        let hash = ctx.finalize_to_vec().unwrap();
++        assert_eq!(
++            hash.encode_hex::<String>(),
++            "c761a6cb7703581f5d79a8132bacd947559969c9"
++        );
++    }
++}
 diff --git a/src/macros.rs b/src/macros.rs
-index 69d145973..3ba228ee3 100644
+index 69d1459..3ba228e 100644
 --- a/src/macros.rs
 +++ b/src/macros.rs
 @@ -1,4 +1,53 @@
@@ -2883,8 +3849,21 @@ index 69d145973..3ba228ee3 100644
 +        )+
 +    };
  }
+diff --git a/src/md.rs b/src/md.rs
+index b02ddfd..1ac9d5e 100644
+--- a/src/md.rs
++++ b/src/md.rs
+@@ -194,7 +194,7 @@ impl Md {
+         unsafe { MdRef::from_ptr(ffi::EVP_ripemd160() as *mut _) }
+     }
+ 
+-    #[cfg(all(any(ossl111, libressl291), not(osslconf = "OPENSSL_NO_SM3")))]
++    #[cfg(all(any(ossl111, libressl), not(osslconf = "OPENSSL_NO_SM3")))]
+     #[inline]
+     pub fn sm3() -> &'static MdRef {
+         unsafe { MdRef::from_ptr(ffi::EVP_sm3() as *mut _) }
 diff --git a/src/nid.rs b/src/nid.rs
-index 453a87c99..3f8e43697 100644
+index 453a87c..b4aba6b 100644
 --- a/src/nid.rs
 +++ b/src/nid.rs
 @@ -44,7 +44,7 @@ pub struct SignatureAlgorithms {
@@ -2896,9 +3875,27 @@ index 453a87c99..3f8e43697 100644
  #[derive(Debug, Copy, Clone, PartialEq, Eq, Hash)]
  pub struct Nid(c_int);
  
+@@ -1076,7 +1076,7 @@ impl Nid {
+     pub const AES_256_CBC_HMAC_SHA1: Nid = Nid(ffi::NID_aes_256_cbc_hmac_sha1);
+     #[cfg(ossl111)]
+     pub const SM2: Nid = Nid(ffi::NID_sm2);
+-    #[cfg(any(ossl111, libressl291))]
++    #[cfg(any(ossl111, libressl))]
+     pub const SM3: Nid = Nid(ffi::NID_sm3);
+     #[cfg(any(ossl111, libressl380, awslc))]
+     pub const SHA3_224: Nid = Nid(ffi::NID_sha3_224);
+@@ -1090,7 +1090,7 @@ impl Nid {
+     pub const SHAKE128: Nid = Nid(ffi::NID_shake128);
+     #[cfg(any(ossl111, awslc))]
+     pub const SHAKE256: Nid = Nid(ffi::NID_shake256);
+-    #[cfg(any(ossl110, libressl271, awslc))]
++    #[cfg(any(ossl110, libressl, awslc))]
+     pub const CHACHA20_POLY1305: Nid = Nid(ffi::NID_chacha20_poly1305);
+ }
+ 
 diff --git a/src/ossl_encdec.rs b/src/ossl_encdec.rs
 new file mode 100644
-index 000000000..c1a0c970b
+index 0000000..c09df9e
 --- /dev/null
 +++ b/src/ossl_encdec.rs
 @@ -0,0 +1,938 @@
@@ -3251,7 +4248,7 @@ index 000000000..c1a0c970b
 +impl OsslEncoderCtxRef {
 +    // XXX: Because the only way to create an `EncoderCtx` is through `new_for_key`, don't expose
 +    //  set_selection, because it doesn't work if OSSL_ENCODER_CTX_new_for_key is called!
-+    //  See https://github.com/openssl/openssl/issues/28249
++    //  See https://github.com/issues/28249
 +    // /// Select which parts of the key to encode.
 +    // #[corresponds(OSSL_ENCODER_CTX_set_selection)]
 +    // #[allow(dead_code)]
@@ -3563,7 +4560,7 @@ index 000000000..c1a0c970b
 +        mod params {
 +            use super::*;
 +            use crate::dh::Dh;
-+            use crate::pkey::Params;
++            use crate::pkey::{Id, Params};
 +            use crate::pkey_ctx::PkeyCtx;
 +
 +            fn generate_dh_params() -> Result<PKey<Params>, ErrorStack> {
@@ -3842,7 +4839,7 @@ index 000000000..c1a0c970b
 +}
 diff --git a/src/ossl_param.rs b/src/ossl_param.rs
 new file mode 100644
-index 000000000..21aa14edc
+index 0000000..da4fb0c
 --- /dev/null
 +++ b/src/ossl_param.rs
 @@ -0,0 +1,362 @@
@@ -3855,7 +4852,7 @@ index 000000000..21aa14edc
 +//! This is always represented as an array of OSSL_PARAM
 +//! structures, terminated by an entry with a NULL key.
 +//!
-+//! For convinience, the OSSL_PARAM_BLD builder can be used to
++//! For convenience, the OSSL_PARAM_BLD builder can be used to
 +//! dynamically construct these structures.
 +//!
 +//! Note, that this module is available only in OpenSSL 3.* and
@@ -4209,7 +5206,7 @@ index 000000000..21aa14edc
 +    }
 +}
 diff --git a/src/pkcs12.rs b/src/pkcs12.rs
-index 14d760afa..1a2b9660b 100644
+index 14d760a..1a2b966 100644
 --- a/src/pkcs12.rs
 +++ b/src/pkcs12.rs
 @@ -226,7 +226,7 @@ impl Pkcs12Builder {
@@ -4239,8 +5236,21 @@ index 14d760afa..1a2b9660b 100644
              // BoringSSL does not support overriding the MAC and will always
              // use SHA-1.
              {
+diff --git a/src/pkcs7.rs b/src/pkcs7.rs
+index 65a6e73..9b991d4 100644
+--- a/src/pkcs7.rs
++++ b/src/pkcs7.rs
+@@ -75,7 +75,7 @@ bitflags! {
+         const NOCRL = ffi::PKCS7_NOCRL;
+         const PARTIAL = ffi::PKCS7_PARTIAL;
+         const REUSE_DIGEST = ffi::PKCS7_REUSE_DIGEST;
+-        #[cfg(not(any(ossl101, ossl102, libressl)))]
++        #[cfg(ossl110)]
+         const NO_DUAL_CONTENT = ffi::PKCS7_NO_DUAL_CONTENT;
+     }
+ }
 diff --git a/src/pkey.rs b/src/pkey.rs
-index 8d69e1cdc..20eee4a0d 100644
+index 8d69e1c..ff6ee30 100644
 --- a/src/pkey.rs
 +++ b/src/pkey.rs
 @@ -41,26 +41,36 @@
@@ -4282,6 +5292,15 @@ index 8d69e1cdc..20eee4a0d 100644
  use std::mem;
  use std::ptr;
  
+@@ -79,7 +89,7 @@ pub struct Id(c_int);
+ 
+ impl Id {
+     pub const RSA: Id = Id(ffi::EVP_PKEY_RSA);
+-    #[cfg(any(ossl111, libressl310, boringssl, awslc))]
++    #[cfg(any(ossl111, libressl, boringssl, awslc))]
+     pub const RSA_PSS: Id = Id(ffi::EVP_PKEY_RSA_PSS);
+     #[cfg(not(boringssl))]
+     pub const HMAC: Id = Id(ffi::EVP_PKEY_HMAC);
 @@ -119,6 +129,103 @@ impl Id {
      }
  }
@@ -4291,7 +5310,7 @@ index 8d69e1cdc..20eee4a0d 100644
 +    fn try_from(id: Id) -> Result<Self, Self::Error> {
 +        match id {
 +            Id::RSA => Ok("RSA"),
-+            #[cfg(any(ossl111, libressl310, boringssl, awslc))]
++            #[cfg(any(ossl111, libressl, boringssl, awslc))]
 +            Id::RSA_PSS => Ok("RSA-PSS"),
 +            #[cfg(not(boringssl))]
 +            Id::HMAC => Ok("HMAC"),
@@ -4455,7 +5474,7 @@ index 8d69e1cdc..20eee4a0d 100644
 -        unsafe {
 -            let dh = cvt_p(ffi::EVP_PKEY_get1_DH(self.as_ptr()))?;
 -            Ok(Dh::from_ptr(dh))
-+        if self.id() != Id::DH {
++        if ![Id::DH, Id::DHX].contains(&self.id()) {
 +            return Err(ErrorStack::get());
          }
 +
@@ -4787,6 +5806,15 @@ index 8d69e1cdc..20eee4a0d 100644
      }
  }
  
+@@ -833,7 +1104,7 @@ impl PKey<Public> {
+ }
+ 
+ cfg_if! {
+-    if #[cfg(any(boringssl, ossl110, libressl270, awslc))] {
++    if #[cfg(any(boringssl, ossl110, libressl, awslc))] {
+         use ffi::EVP_PKEY_up_ref;
+     } else {
+         #[allow(bad_style)]
 @@ -914,6 +1185,40 @@ impl<T> TryFrom<PKey<T>> for Dh<T> {
      }
  }
@@ -4896,7 +5924,7 @@ index 8d69e1cdc..20eee4a0d 100644
 +    }
  }
 diff --git a/src/pkey_ctx.rs b/src/pkey_ctx.rs
-index aa39a0f9c..0dea2bb95 100644
+index aa39a0f..49e9d95 100644
 --- a/src/pkey_ctx.rs
 +++ b/src/pkey_ctx.rs
 @@ -64,14 +64,25 @@ let cmac_key = ctx.keygen().unwrap();
@@ -5152,7 +6180,23 @@ index aa39a0f9c..0dea2bb95 100644
      /// Sets the RSA PSS salt length.
      ///
      /// This is only useful for RSA keys.
-@@ -734,6 +932,25 @@ impl<T> PkeyCtxRef<T> {
+@@ -501,7 +699,6 @@ impl<T> PkeyCtxRef<T> {
+     ///
+     /// This is only useful for RSA keys.
+     #[corresponds(EVP_PKEY_CTX_set_rsa_oaep_md)]
+-    #[cfg(any(ossl102, libressl310, boringssl, awslc))]
+     #[inline]
+     pub fn set_rsa_oaep_md(&mut self, md: &MdRef) -> Result<(), ErrorStack> {
+         unsafe {
+@@ -518,7 +715,6 @@ impl<T> PkeyCtxRef<T> {
+     ///
+     /// This is only useful for RSA keys.
+     #[corresponds(EVP_PKEY_CTX_set0_rsa_oaep_label)]
+-    #[cfg(any(ossl102, libressl310, boringssl, awslc))]
+     pub fn set_rsa_oaep_label(&mut self, label: &[u8]) -> Result<(), ErrorStack> {
+         use crate::LenType;
+         let len = LenType::try_from(label.len()).unwrap();
+@@ -734,6 +930,25 @@ impl<T> PkeyCtxRef<T> {
          }
      }
  
@@ -5178,7 +6222,7 @@ index aa39a0f9c..0dea2bb95 100644
      /// Sets the nonce type for a private key context.
      ///
      /// The nonce for DSA and ECDSA can be either random (the default) or deterministic (as defined by RFC 6979).
-@@ -743,17 +960,10 @@ impl<T> PkeyCtxRef<T> {
+@@ -743,17 +958,10 @@ impl<T> PkeyCtxRef<T> {
      #[cfg(ossl320)]
      #[corresponds(EVP_PKEY_CTX_set_params)]
      pub fn set_nonce_type(&mut self, nonce_type: NonceType) -> Result<(), ErrorStack> {
@@ -5200,7 +6244,7 @@ index aa39a0f9c..0dea2bb95 100644
      }
  
      /// Gets the nonce type for a private key context.
-@@ -765,11 +975,12 @@ impl<T> PkeyCtxRef<T> {
+@@ -765,11 +973,12 @@ impl<T> PkeyCtxRef<T> {
      #[cfg(ossl320)]
      #[corresponds(EVP_PKEY_CTX_get_params)]
      pub fn nonce_type(&mut self) -> Result<NonceType, ErrorStack> {
@@ -5216,7 +6260,7 @@ index aa39a0f9c..0dea2bb95 100644
              let param_end = ffi::OSSL_PARAM_construct_end();
  
              let mut params = [param_nonce, param_end];
-@@ -782,18 +993,37 @@ impl<T> PkeyCtxRef<T> {
+@@ -782,18 +991,37 @@ impl<T> PkeyCtxRef<T> {
      }
  }
  
@@ -5254,7 +6298,15 @@ index aa39a0f9c..0dea2bb95 100644
  
      #[test]
      fn rsa() {
-@@ -920,6 +1150,64 @@ mod test {
+@@ -819,7 +1047,6 @@ mod test {
+     }
+ 
+     #[test]
+-    #[cfg(any(ossl102, libressl310, boringssl, awslc))]
+     fn rsa_oaep() {
+         let key = include_bytes!("../test/rsa.pem");
+         let rsa = Rsa::private_key_from_pem(key).unwrap();
+@@ -920,6 +1147,63 @@ mod test {
          ctx.keygen().unwrap();
      }
  
@@ -5282,8 +6334,7 @@ index aa39a0f9c..0dea2bb95 100644
 +            cfg_if! {
 +                if #[cfg(awslc)] {
 +                    72
-+                } else if #[cfg(any(libressl, all(ossl101, not(ossl102))))] {
-+                    // LibreSSL and OpenSSL 1.0.1 and earlier
++                } else if #[cfg(libressl)] {
 +                    48
 +                } else {
 +                    64
@@ -5319,7 +6370,32 @@ index aa39a0f9c..0dea2bb95 100644
      #[test]
      #[cfg(any(ossl110, boringssl, libressl360, awslc))]
      fn hkdf() {
-@@ -1107,4 +1395,26 @@ mxJ7imIrEg9nIQ==
+@@ -1051,7 +1335,7 @@ mod test {
+         // result_buf contains the digest
+         assert_eq!(result_buf[..length], digest);
+ 
+-        // Attempt recovery of teh entire DigestInfo
++        // Attempt recovery of the entire DigestInfo
+         let mut ctx = PkeyCtx::new(&key).unwrap();
+         ctx.verify_recover_init().unwrap();
+         ctx.set_rsa_padding(Padding::PKCS1).unwrap();
+@@ -1094,12 +1378,12 @@ mxJ7imIrEg9nIQ==
+         let key1 = EcKey::private_key_from_pem(private_key_pem.as_bytes()).unwrap();
+         let key1 = PKey::from_ec_key(key1).unwrap();
+         let input = "sample";
+-        let expected_output = hex::decode("3044022061340C88C3AAEBEB4F6D667F672CA9759A6CCAA9FA8811313039EE4A35471D3202206D7F147DAC089441BB2E2FE8F7A3FA264B9C475098FDCF6E00D7C996E1B8B7EB").unwrap();
++        let expected_output = hex::decode("3046022100EFD48B2AACB6A8FD1140DD9CD45E81D69D2C877B56AAF991C34D0EA84EAF3716022100F7CB1C942D657C41D436C7A1B6E29F65F3E900DBB9AFF4064DC4AB2F843ACDA8").unwrap();
+ 
+-        let hashed_input = hash(MessageDigest::sha1(), input.as_bytes()).unwrap();
++        let hashed_input = hash(MessageDigest::sha256(), input.as_bytes()).unwrap();
+         let mut ctx = PkeyCtx::new(&key1).unwrap();
+         ctx.sign_init().unwrap();
+-        ctx.set_signature_md(Md::sha1()).unwrap();
++        ctx.set_signature_md(Md::sha256()).unwrap();
+         ctx.set_nonce_type(NonceType::DETERMINISTIC_K).unwrap();
+ 
+         let mut output = vec![];
+@@ -1107,4 +1391,26 @@ mxJ7imIrEg9nIQ==
          assert_eq!(output, expected_output);
          assert!(ErrorStack::get().errors().is_empty());
      }
@@ -5347,7 +6423,7 @@ index aa39a0f9c..0dea2bb95 100644
 +    }
  }
 diff --git a/src/rsa.rs b/src/rsa.rs
-index ea1548c79..9fe6a14a8 100644
+index ea1548c..1432ffc 100644
 --- a/src/rsa.rs
 +++ b/src/rsa.rs
 @@ -23,18 +23,45 @@
@@ -6022,14 +7098,17 @@ index ea1548c79..9fe6a14a8 100644
          ffi::d2i_RSAPrivateKey
      }
  }
-@@ -584,6 +699,7 @@ impl<T> fmt::Debug for Rsa<T> {
+@@ -584,8 +699,9 @@ impl<T> fmt::Debug for Rsa<T> {
      }
  }
  
 +#[cfg(not(ossl300))]
  cfg_if! {
-     if #[cfg(any(ossl110, libressl273, boringssl, awslc))] {
+-    if #[cfg(any(ossl110, libressl273, boringssl, awslc))] {
++    if #[cfg(any(ossl110, libressl, boringssl, awslc))] {
          use ffi::{
+             RSA_get0_key, RSA_get0_factors, RSA_get0_crt_params, RSA_set0_key, RSA_set0_factors,
+             RSA_set0_crt_params,
 @@ -683,17 +799,78 @@ cfg_if! {
  #[cfg(test)]
  mod test {
@@ -6150,16 +7229,13 @@ index ea1548c79..9fe6a14a8 100644
          let public_key = Rsa::public_key_from_pem(key).unwrap();
  
          let mut result = vec![0; public_key.size() as usize];
-@@ -780,25 +974,55 @@ mod test {
+@@ -780,25 +974,52 @@ mod test {
      }
  
      #[test]
 -    #[should_panic]
 +    // for some reason this doesn't panic on 3.0, or 3.5, but does on 3.2-3.4 ¯\_(ツ)_/¯
-+    #[cfg_attr(
-+        any(ossl320, not(ossl350)),
-+        ignore
-+    )]
++    #[cfg_attr(any(ossl320, not(ossl350)), ignore)]
      fn test_public_key_from_pem_pkcs1_file_panic() {
          let key = include_bytes!("../test/key.pem.pub");
 -        Rsa::public_key_from_pem_pkcs1(key).unwrap();
@@ -6214,7 +7290,7 @@ index ea1548c79..9fe6a14a8 100644
      }
  
      #[test]
-@@ -848,6 +1072,32 @@ mod test {
+@@ -848,6 +1069,32 @@ mod test {
          drop(key.clone());
      }
  
@@ -6248,7 +7324,7 @@ index ea1548c79..9fe6a14a8 100644
      fn generate_with_e() {
          let e = BigNum::from_u32(0x10001).unwrap();
 diff --git a/src/sha.rs b/src/sha.rs
-index 24128904a..8ec8abbaf 100644
+index 2412890..8ec8abb 100644
 --- a/src/sha.rs
 +++ b/src/sha.rs
 @@ -13,7 +13,10 @@
@@ -6271,8 +7347,46 @@ index 24128904a..8ec8abbaf 100644
  use libc::c_void;
  use openssl_macros::corresponds;
  use std::mem::MaybeUninit;
+diff --git a/src/sign.rs b/src/sign.rs
+index 0e967a8..51e6e11 100644
+--- a/src/sign.rs
++++ b/src/sign.rs
+@@ -529,8 +529,11 @@ impl<'a> Verifier<'a> {
+     #[corresponds(EVP_DigestVerifyFinal)]
+     pub fn verify(&self, signature: &[u8]) -> Result<bool, ErrorStack> {
+         unsafe {
+-            let r =
+-                EVP_DigestVerifyFinal(self.md_ctx, signature.as_ptr() as *mut _, signature.len());
++            let r = ffi::EVP_DigestVerifyFinal(
++                self.md_ctx,
++                signature.as_ptr() as *mut _,
++                signature.len(),
++            );
+             match r {
+                 1 => Ok(true),
+                 0 => {
+@@ -577,19 +580,6 @@ impl Write for Verifier<'_> {
+     }
+ }
+ 
+-#[cfg(not(ossl101))]
+-use ffi::EVP_DigestVerifyFinal;
+-
+-#[cfg(ossl101)]
+-#[allow(bad_style)]
+-unsafe fn EVP_DigestVerifyFinal(
+-    ctx: *mut ffi::EVP_MD_CTX,
+-    sigret: *const ::libc::c_uchar,
+-    siglen: ::libc::size_t,
+-) -> ::libc::c_int {
+-    ffi::EVP_DigestVerifyFinal(ctx, sigret as *mut _, siglen)
+-}
+-
+ #[cfg(test)]
+ mod test {
+     use hex::{self, FromHex};
 diff --git a/src/ssl/bio.rs b/src/ssl/bio.rs
-index 16485624f..ecd74c9a1 100644
+index 1648562..4a0b127 100644
 --- a/src/ssl/bio.rs
 +++ b/src/ssl/bio.rs
 @@ -189,7 +189,7 @@ unsafe extern "C" fn destroy<S>(bio: *mut BIO) -> c_int {
@@ -6280,7 +7394,7 @@ index 16485624f..ecd74c9a1 100644
  
  cfg_if! {
 -    if #[cfg(any(ossl110, libressl273))] {
-+    if #[cfg(any(ossl110, libressl273, boringssl))] {
++    if #[cfg(any(ossl110, libressl, boringssl))] {
          use ffi::{BIO_get_data, BIO_set_data, BIO_set_flags, BIO_set_init};
          use crate::cvt;
  
@@ -6326,10 +7440,10 @@ index 16485624f..ecd74c9a1 100644
                  }
              }
 diff --git a/src/ssl/callbacks.rs b/src/ssl/callbacks.rs
-index 22eb600f5..4af535c58 100644
+index 22eb600..1fba12a 100644
 --- a/src/ssl/callbacks.rs
 +++ b/src/ssl/callbacks.rs
-@@ -14,10 +14,14 @@ use std::ptr;
+@@ -14,12 +14,15 @@ use std::ptr;
  use std::str;
  use std::sync::Arc;
  
@@ -6337,14 +7451,25 @@ index 22eb600f5..4af535c58 100644
 +use crate::cvt_p;
 +#[cfg(not(osslconf = "OPENSSL_NO_DEPRECATED_3_0"))]
  use crate::dh::Dh;
- #[cfg(all(ossl101, not(ossl110)))]
+-#[cfg(all(ossl101, not(ossl110)))]
++#[cfg(all(ossl102, not(ossl110)))]
  use crate::ec::EcKey;
  use crate::error::ErrorStack;
 +#[cfg(not(osslconf = "OPENSSL_NO_DEPRECATED_3_0"))]
  use crate::pkey::Params;
- #[cfg(any(ossl102, libressl261, boringssl, awslc))]
+-#[cfg(any(ossl102, libressl261, boringssl, awslc))]
  use crate::ssl::AlpnError;
-@@ -210,6 +214,7 @@ where
+ use crate::ssl::{
+     try_get_session_ctx_index, SniError, Ssl, SslAlert, SslContext, SslContextRef, SslRef,
+@@ -178,7 +181,6 @@ where
+     }
+ }
+ 
+-#[cfg(any(ossl102, libressl261, boringssl, awslc))]
+ pub extern "C" fn raw_alpn_select<F>(
+     ssl: *mut ffi::SSL,
+     out: *mut *const c_uchar,
+@@ -210,6 +212,7 @@ where
      }
  }
  
@@ -6352,7 +7477,7 @@ index 22eb600f5..4af535c58 100644
  pub unsafe extern "C" fn raw_tmp_dh<F>(
      ssl: *mut ffi::SSL,
      is_export: c_int,
-@@ -226,6 +231,9 @@ where
+@@ -226,6 +229,9 @@ where
  
      match (*callback)(ssl, is_export != 0, keylength as u32) {
          Ok(dh) => {
@@ -6362,7 +7487,16 @@ index 22eb600f5..4af535c58 100644
              let ptr = dh.as_ptr();
              mem::forget(dh);
              ptr
-@@ -265,6 +273,7 @@ where
+@@ -237,7 +243,7 @@ where
+     }
+ }
+ 
+-#[cfg(all(ossl101, not(ossl110)))]
++#[cfg(all(ossl102, not(ossl110)))]
+ pub unsafe extern "C" fn raw_tmp_ecdh<F>(
+     ssl: *mut ffi::SSL,
+     is_export: c_int,
+@@ -265,6 +271,7 @@ where
      }
  }
  
@@ -6370,7 +7504,7 @@ index 22eb600f5..4af535c58 100644
  pub unsafe extern "C" fn raw_tmp_dh_ssl<F>(
      ssl: *mut ffi::SSL,
      is_export: c_int,
-@@ -281,6 +290,9 @@ where
+@@ -281,6 +288,9 @@ where
  
      match callback(ssl, is_export != 0, keylength as u32) {
          Ok(dh) => {
@@ -6380,22 +7514,352 @@ index 22eb600f5..4af535c58 100644
              let ptr = dh.as_ptr();
              mem::forget(dh);
              ptr
+@@ -292,7 +302,7 @@ where
+     }
+ }
+ 
+-#[cfg(all(ossl101, not(ossl110)))]
++#[cfg(all(ossl102, not(ossl110)))]
+ pub unsafe extern "C" fn raw_tmp_ecdh_ssl<F>(
+     ssl: *mut ffi::SSL,
+     is_export: c_int,
+@@ -391,7 +401,7 @@ pub unsafe extern "C" fn raw_remove_session<F>(
+ }
+ 
+ cfg_if! {
+-    if #[cfg(any(ossl110, libressl280, boringssl, awslc))] {
++    if #[cfg(any(ossl110, libressl, boringssl, awslc))] {
+         type DataPtr = *const c_uchar;
+     } else {
+         type DataPtr = *mut c_uchar;
+@@ -527,7 +537,7 @@ where
+ 
+ #[cfg(not(any(boringssl, awslc)))]
+ cfg_if! {
+-    if #[cfg(any(ossl110, libressl280))] {
++    if #[cfg(any(ossl110, libressl))] {
+         type CookiePtr = *const c_uchar;
+     } else {
+         type CookiePtr = *mut c_uchar;
+diff --git a/src/ssl/connector.rs b/src/ssl/connector.rs
+index 8992f5a..eae0e42 100644
+--- a/src/ssl/connector.rs
++++ b/src/ssl/connector.rs
+@@ -4,7 +4,7 @@ use std::ops::{Deref, DerefMut};
+ 
+ use crate::dh::Dh;
+ use crate::error::ErrorStack;
+-#[cfg(any(ossl111, libressl340))]
++#[cfg(any(ossl111, libressl))]
+ use crate::ssl::SslVersion;
+ use crate::ssl::{
+     HandshakeError, Ssl, SslContext, SslContextBuilder, SslContextRef, SslMethod, SslMode,
+@@ -61,9 +61,6 @@ fn ctx(method: SslMethod) -> Result<SslContextBuilder, ErrorStack> {
+ ///
+ /// OpenSSL's default configuration is highly insecure. This connector manages the OpenSSL
+ /// structures, configuring cipher suites, session options, hostname verification, and more.
+-///
+-/// OpenSSL's built-in hostname verification is used when linking against OpenSSL 1.0.2 or 1.1.0,
+-/// and a custom implementation is used when linking against OpenSSL 1.0.1.
+ #[derive(Clone, Debug)]
+ pub struct SslConnector(SslContext);
+ 
+@@ -242,7 +239,7 @@ impl SslAcceptor {
+              ECDHE-RSA-AES256-GCM-SHA384:ECDHE-ECDSA-CHACHA20-POLY1305:ECDHE-RSA-CHACHA20-POLY1305:\
+              DHE-RSA-AES128-GCM-SHA256:DHE-RSA-AES256-GCM-SHA384"
+         )?;
+-        #[cfg(any(ossl111, libressl340))]
++        #[cfg(any(ossl111, libressl))]
+         ctx.set_ciphersuites(
+             "TLS_AES_128_GCM_SHA256:TLS_AES_256_GCM_SHA384:TLS_CHACHA20_POLY1305_SHA256",
+         )?;
+@@ -254,10 +251,10 @@ impl SslAcceptor {
+     /// This corresponds to the modern configuration of version 5 of Mozilla's server side TLS recommendations.
+     /// See its [documentation][docs] for more details on specifics.
+     ///
+-    /// Requires OpenSSL 1.1.1 or LibreSSL 3.4.0 or newer.
++    /// Requires OpenSSL 1.1.1 or newer or LibreSSL.
+     ///
+     /// [docs]: https://wiki.mozilla.org/Security/Server_Side_TLS
+-    #[cfg(any(ossl111, libressl340))]
++    #[cfg(any(ossl111, libressl))]
+     pub fn mozilla_modern_v5(method: SslMethod) -> Result<SslAcceptorBuilder, ErrorStack> {
+         let mut ctx = ctx(method)?;
+         ctx.set_min_proto_version(Some(SslVersion::TLS1_3))?;
+@@ -278,7 +275,7 @@ impl SslAcceptor {
+     pub fn mozilla_intermediate(method: SslMethod) -> Result<SslAcceptorBuilder, ErrorStack> {
+         let mut ctx = ctx(method)?;
+         ctx.set_options(SslOptions::CIPHER_SERVER_PREFERENCE);
+-        #[cfg(any(ossl111, libressl340))]
++        #[cfg(any(ossl111, libressl))]
+         ctx.set_options(SslOptions::NO_TLSV1_3);
+         let dh = Dh::params_from_pem(FFDHE_2048.as_bytes())?;
+         ctx.set_tmp_dh(&dh)?;
+@@ -308,7 +305,7 @@ impl SslAcceptor {
+         ctx.set_options(
+             SslOptions::CIPHER_SERVER_PREFERENCE | SslOptions::NO_TLSV1 | SslOptions::NO_TLSV1_1,
+         );
+-        #[cfg(any(ossl111, libressl340))]
++        #[cfg(any(ossl111, libressl))]
+         ctx.set_options(SslOptions::NO_TLSV1_3);
+         setup_curves(&mut ctx)?;
+         ctx.set_cipher_list(
+@@ -384,222 +381,17 @@ cfg_if! {
+     }
+ }
+ 
+-cfg_if! {
+-    if #[cfg(any(ossl102, libressl261))] {
+-        fn setup_verify(ctx: &mut SslContextBuilder) {
+-            ctx.set_verify(SslVerifyMode::PEER);
+-        }
++fn setup_verify(ctx: &mut SslContextBuilder) {
++    ctx.set_verify(SslVerifyMode::PEER);
++}
+ 
+-        fn setup_verify_hostname(ssl: &mut SslRef, domain: &str) -> Result<(), ErrorStack> {
+-            use crate::x509::verify::X509CheckFlags;
++fn setup_verify_hostname(ssl: &mut SslRef, domain: &str) -> Result<(), ErrorStack> {
++    use crate::x509::verify::X509CheckFlags;
+ 
+-            let param = ssl.param_mut();
+-            param.set_hostflags(X509CheckFlags::NO_PARTIAL_WILDCARDS);
+-            match domain.parse() {
+-                Ok(ip) => param.set_ip(ip),
+-                Err(_) => param.set_host(domain),
+-            }
+-        }
+-    } else {
+-        fn setup_verify(ctx: &mut SslContextBuilder) {
+-            ctx.set_verify_callback(SslVerifyMode::PEER, verify::verify_callback);
+-        }
+-
+-        fn setup_verify_hostname(ssl: &mut Ssl, domain: &str) -> Result<(), ErrorStack> {
+-            let domain = domain.to_string();
+-            let hostname_idx = verify::try_get_hostname_idx()?;
+-            ssl.set_ex_data(*hostname_idx, domain);
+-            Ok(())
+-        }
+-
+-        mod verify {
+-            use std::net::IpAddr;
+-            use std::str;
+-            use once_cell::sync::OnceCell;
+-
+-            use crate::error::ErrorStack;
+-            use crate::ex_data::Index;
+-            use crate::nid::Nid;
+-            use crate::ssl::Ssl;
+-            use crate::stack::Stack;
+-            use crate::x509::{
+-                GeneralName, X509NameRef, X509Ref, X509StoreContext, X509StoreContextRef,
+-                X509VerifyResult,
+-            };
+-
+-            static HOSTNAME_IDX: OnceCell<Index<Ssl, String>> = OnceCell::new();
+-
+-            pub fn try_get_hostname_idx() -> Result<&'static Index<Ssl, String>, ErrorStack> {
+-                HOSTNAME_IDX.get_or_try_init(Ssl::new_ex_index)
+-            }
+-
+-            pub fn verify_callback(preverify_ok: bool, x509_ctx: &mut X509StoreContextRef) -> bool {
+-                if !preverify_ok || x509_ctx.error_depth() != 0 {
+-                    return preverify_ok;
+-                }
+-
+-                let hostname_idx =
+-                    try_get_hostname_idx().expect("failed to initialize hostname index");
+-                let ok = match (
+-                    x509_ctx.current_cert(),
+-                    X509StoreContext::ssl_idx()
+-                        .ok()
+-                        .and_then(|idx| x509_ctx.ex_data(idx))
+-                        .and_then(|ssl| ssl.ex_data(*hostname_idx)),
+-                ) {
+-                    (Some(x509), Some(domain)) => verify_hostname(domain, &x509),
+-                    _ => true,
+-                };
+-
+-                if !ok {
+-                    x509_ctx.set_error(X509VerifyResult::APPLICATION_VERIFICATION);
+-                }
+-
+-                ok
+-            }
+-
+-            fn verify_hostname(domain: &str, cert: &X509Ref) -> bool {
+-                match cert.subject_alt_names() {
+-                    Some(names) => verify_subject_alt_names(domain, names),
+-                    None => verify_subject_name(domain, &cert.subject_name()),
+-                }
+-            }
+-
+-            fn verify_subject_alt_names(domain: &str, names: Stack<GeneralName>) -> bool {
+-                let ip = domain.parse();
+-
+-                for name in &names {
+-                    match ip {
+-                        Ok(ip) => {
+-                            if let Some(actual) = name.ipaddress() {
+-                                if matches_ip(&ip, actual) {
+-                                    return true;
+-                                }
+-                            }
+-                        }
+-                        Err(_) => {
+-                            if let Some(pattern) = name.dnsname() {
+-                                if matches_dns(pattern, domain) {
+-                                    return true;
+-                                }
+-                            }
+-                        }
+-                    }
+-                }
+-
+-                false
+-            }
+-
+-            fn verify_subject_name(domain: &str, subject_name: &X509NameRef) -> bool {
+-                match subject_name.entries_by_nid(Nid::COMMONNAME).next() {
+-                    Some(pattern) => {
+-                        let pattern = match str::from_utf8(pattern.data().as_slice()) {
+-                            Ok(pattern) => pattern,
+-                            Err(_) => return false,
+-                        };
+-
+-                        // Unlike SANs, IP addresses in the subject name don't have a
+-                        // different encoding.
+-                        match domain.parse::<IpAddr>() {
+-                            Ok(ip) => pattern
+-                                .parse::<IpAddr>()
+-                                .ok()
+-                                .map_or(false, |pattern| pattern == ip),
+-                            Err(_) => matches_dns(pattern, domain),
+-                        }
+-                    }
+-                    None => false,
+-                }
+-            }
+-
+-            fn matches_dns(mut pattern: &str, mut hostname: &str) -> bool {
+-                // first strip trailing . off of pattern and hostname to normalize
+-                if pattern.ends_with('.') {
+-                    pattern = &pattern[..pattern.len() - 1];
+-                }
+-                if hostname.ends_with('.') {
+-                    hostname = &hostname[..hostname.len() - 1];
+-                }
+-
+-                matches_wildcard(pattern, hostname).unwrap_or_else(|| pattern.eq_ignore_ascii_case(hostname))
+-            }
+-
+-            fn matches_wildcard(pattern: &str, hostname: &str) -> Option<bool> {
+-                let wildcard_location = match pattern.find('*') {
+-                    Some(l) => l,
+-                    None => return None,
+-                };
+-
+-                let mut dot_idxs = pattern.match_indices('.').map(|(l, _)| l);
+-                let wildcard_end = match dot_idxs.next() {
+-                    Some(l) => l,
+-                    None => return None,
+-                };
+-
+-                // Never match wildcards if the pattern has less than 2 '.'s (no *.com)
+-                //
+-                // This is a bit dubious, as it doesn't disallow other TLDs like *.co.uk.
+-                // Chrome has a black- and white-list for this, but Firefox (via NSS) does
+-                // the same thing we do here.
+-                //
+-                // The Public Suffix (https://www.publicsuffix.org/) list could
+-                // potentially be used here, but it's both huge and updated frequently
+-                // enough that management would be a PITA.
+-                if dot_idxs.next().is_none() {
+-                    return None;
+-                }
+-
+-                // Wildcards can only be in the first component, and must be the entire first label
+-                if wildcard_location != 0 || wildcard_end != wildcard_location + 1 {
+-                    return None;
+-                }
+-
+-                let hostname_label_end = match hostname.find('.') {
+-                    Some(l) => l,
+-                    None => return None,
+-                };
+-
+-                let pattern_after_wildcard = &pattern[wildcard_end..];
+-                let hostname_after_wildcard = &hostname[hostname_label_end..];
+-
+-                Some(pattern_after_wildcard.eq_ignore_ascii_case(hostname_after_wildcard))
+-            }
+-
+-            fn matches_ip(expected: &IpAddr, actual: &[u8]) -> bool {
+-                match *expected {
+-                    IpAddr::V4(ref addr) => actual == addr.octets(),
+-                    IpAddr::V6(ref addr) => actual == addr.octets(),
+-                }
+-            }
+-
+-            #[test]
+-            fn test_dns_match() {
+-                use crate::ssl::connector::verify::matches_dns;
+-                assert!(matches_dns("website.tld", "website.tld")); // A name should match itself.
+-                assert!(matches_dns("website.tld", "wEbSiTe.tLd")); // DNS name matching ignores case of hostname.
+-                assert!(matches_dns("wEbSiTe.TlD", "website.tld")); // DNS name matching ignores case of subject.
+-
+-                assert!(matches_dns("xn--bcher-kva.tld", "xn--bcher-kva.tld")); // Likewise, nothing special to punycode names.
+-                assert!(matches_dns("xn--bcher-kva.tld", "xn--BcHer-Kva.tLd")); // And punycode must be compared similarly case-insensitively.
+-
+-                assert!(matches_dns("*.example.com", "subdomain.example.com")); // Wildcard matching works.
+-                assert!(matches_dns("*.eXaMpLe.cOm", "subdomain.example.com")); // Wildcard matching ignores case of subject.
+-                assert!(matches_dns("*.example.com", "sUbDoMaIn.eXaMpLe.cOm")); // Wildcard matching ignores case of hostname.
+-
+-                assert!(!matches_dns("prefix*.example.com", "p.example.com")); // Prefix longer than the label works and does not match.
+-                assert!(!matches_dns("*suffix.example.com", "s.example.com")); // Suffix longer than the label works and does not match.
+-
+-                assert!(!matches_dns("prefix*.example.com", "prefix.example.com")); // Partial wildcards do not work.
+-                assert!(!matches_dns("*suffix.example.com", "suffix.example.com")); // Partial wildcards do not work.
+-
+-                assert!(!matches_dns("prefix*.example.com", "prefixdomain.example.com")); // Partial wildcards do not work.
+-                assert!(!matches_dns("*suffix.example.com", "domainsuffix.example.com")); // Partial wildcards do not work.
+-
+-                assert!(!matches_dns("xn--*.example.com", "subdomain.example.com")); // Punycode domains with wildcard parts do not match.
+-                assert!(!matches_dns("xN--*.example.com", "subdomain.example.com")); // And we can't bypass a punycode test with weird casing.
+-                assert!(!matches_dns("Xn--*.example.com", "subdomain.example.com")); // And we can't bypass a punycode test with weird casing.
+-                assert!(!matches_dns("XN--*.example.com", "subdomain.example.com")); // And we can't bypass a punycode test with weird casing.
+-            }
+-        }
++    let param = ssl.param_mut();
++    param.set_hostflags(X509CheckFlags::NO_PARTIAL_WILDCARDS);
++    match domain.parse() {
++        Ok(ip) => param.set_ip(ip),
++        Err(_) => param.set_host(domain),
+     }
+ }
 diff --git a/src/ssl/mod.rs b/src/ssl/mod.rs
-index 696be0134..7c82fc4ab 100644
+index 696be01..a5b26cb 100644
 --- a/src/ssl/mod.rs
 +++ b/src/ssl/mod.rs
-@@ -59,7 +59,9 @@
+@@ -59,19 +59,22 @@
  //! ```
  #[cfg(ossl300)]
  use crate::cvt_long;
 -use crate::dh::{Dh, DhRef};
+-#[cfg(all(ossl101, not(ossl110)))]
 +#[cfg(not(osslconf = "OPENSSL_NO_DEPRECATED_3_0"))]
 +use crate::dh::Dh;
 +use crate::dh::DhRef;
- #[cfg(all(ossl101, not(ossl110)))]
++#[cfg(all(ossl102, not(ossl110)))]
  use crate::ec::EcKey;
  use crate::ec::EcKeyRef;
-@@ -72,6 +74,7 @@ use crate::nid::Nid;
+ use crate::error::ErrorStack;
+ use crate::ex_data::Index;
+ #[cfg(ossl111)]
+ use crate::hash::MessageDigest;
+-#[cfg(any(ossl110, libressl270))]
++#[cfg(any(ossl110, libressl))]
+ use crate::nid::Nid;
  use crate::pkey::{HasPrivate, PKeyRef, Params, Private};
  #[cfg(ossl300)]
  use crate::pkey::{PKey, Public};
@@ -6403,7 +7867,103 @@ index 696be0134..7c82fc4ab 100644
  use crate::srtp::{SrtpProtectionProfile, SrtpProtectionProfileRef};
  use crate::ssl::bio::BioMethod;
  use crate::ssl::callbacks::*;
-@@ -871,9 +874,21 @@ impl SslContextBuilder {
+@@ -80,7 +83,6 @@ use crate::stack::{Stack, StackRef, Stackable};
+ use crate::util;
+ use crate::util::{ForeignTypeExt, ForeignTypeRefExt};
+ use crate::x509::store::{X509Store, X509StoreBuilderRef, X509StoreRef};
+-#[cfg(any(ossl102, boringssl, libressl261, awslc))]
+ use crate::x509::verify::X509VerifyParamRef;
+ use crate::x509::{X509Name, X509Ref, X509StoreContextRef, X509VerifyResult, X509};
+ use crate::{cvt, cvt_n, cvt_p, init};
+@@ -221,20 +223,14 @@ bitflags! {
+ 
+         /// Disables the use of TLSv1.3.
+         ///
+-        /// Requires OpenSSL 1.1.1 or LibreSSL 3.4.0 or newer.
+-        #[cfg(any(boringssl, ossl111, libressl340, awslc))]
++        /// Requires AWS-LC or BoringSSL or OpenSSL 1.1.1 or newer or LibreSSL.
++        #[cfg(any(boringssl, ossl111, libressl, awslc))]
+         const NO_TLSV1_3 = ffi::SSL_OP_NO_TLSv1_3 as SslOptionsRepr;
+ 
+         /// Disables the use of DTLSv1.0
+-        ///
+-        /// Requires OpenSSL 1.0.2 or LibreSSL 3.3.2 or newer.
+-        #[cfg(any(boringssl, ossl102, ossl110, libressl332, awslc))]
+         const NO_DTLSV1 = ffi::SSL_OP_NO_DTLSv1 as SslOptionsRepr;
+ 
+         /// Disables the use of DTLSv1.2.
+-        ///
+-        /// Requires OpenSSL 1.0.2 or LibreSSL 3.3.2 or newer.
+-        #[cfg(any(boringssl, ossl102, ossl110, libressl332, awslc))]
+         const NO_DTLSV1_2 = ffi::SSL_OP_NO_DTLSv1_2 as SslOptionsRepr;
+ 
+         /// Disables the use of all (D)TLS protocol versions.
+@@ -252,7 +248,7 @@ bitflags! {
+         ///
+         /// let options = SslOptions::NO_SSL_MASK & !SslOptions::NO_TLSV1_2;
+         /// ```
+-        #[cfg(any(ossl102, ossl110))]
++        #[cfg(ossl102)]
+         const NO_SSL_MASK = ffi::SSL_OP_NO_SSL_MASK as SslOptionsRepr;
+ 
+         /// Disallow all renegotiation in TLSv1.2 and earlier.
+@@ -366,14 +362,14 @@ impl SslMethod {
+ 
+     /// Support all versions of the DTLS protocol, explicitly as a client.
+     #[corresponds(DTLS_client_method)]
+-    #[cfg(any(boringssl, ossl110, libressl291, awslc))]
++    #[cfg(any(boringssl, ossl110, libressl, awslc))]
+     pub fn dtls_client() -> SslMethod {
+         unsafe { SslMethod(DTLS_client_method()) }
+     }
+ 
+     /// Support all versions of the DTLS protocol, explicitly as a server.
+     #[corresponds(DTLS_server_method)]
+-    #[cfg(any(boringssl, ossl110, libressl291, awslc))]
++    #[cfg(any(boringssl, ossl110, libressl, awslc))]
+     pub fn dtls_server() -> SslMethod {
+         unsafe { SslMethod(DTLS_server_method()) }
+     }
+@@ -616,17 +612,15 @@ impl SslAlert {
+ 
+ /// An error returned from an ALPN selection callback.
+ ///
+-/// Requires AWS-LC or BoringSSL or OpenSSL 1.0.2 or LibreSSL 2.6.1 or newer.
+-#[cfg(any(ossl102, libressl261, boringssl, awslc))]
++/// Requires AWS-LC or BoringSSL or LibreSSL or OpenSSL 1.0.2 or newer.
+ #[derive(Debug, Copy, Clone, PartialEq, Eq)]
+ pub struct AlpnError(c_int);
+ 
+-#[cfg(any(ossl102, libressl261, boringssl, awslc))]
+ impl AlpnError {
+     /// Terminate the handshake with a fatal alert.
+     ///
+     /// Requires AWS-LC or BoringSSL or OpenSSL 1.1.0 or newer.
+-    #[cfg(any(ossl110, boringssl, awslc))]
++    #[cfg(any(ossl110, libressl, boringssl, awslc))]
+     pub const ALERT_FATAL: AlpnError = AlpnError(ffi::SSL_TLSEXT_ERR_ALERT_FATAL);
+ 
+     /// Do not select a protocol, but continue the handshake.
+@@ -668,8 +662,8 @@ impl SslVersion {
+ 
+     /// TLSv1.3
+     ///
+-    /// Requires AWS-LC or BoringSSL or OpenSSL 1.1.1 or LibreSSL 3.4.0 or newer.
+-    #[cfg(any(ossl111, libressl340, boringssl, awslc))]
++    /// Requires AWS-LC or BoringSSL or OpenSSL 1.1.1 or newer or LibreSSL.
++    #[cfg(any(ossl111, libressl, boringssl, awslc))]
+     pub const TLS1_3: SslVersion = SslVersion(ffi::TLS1_3_VERSION);
+ 
+     /// DTLSv1.0
+@@ -680,7 +674,6 @@ impl SslVersion {
+     /// DTLSv1.2
+     ///
+     /// DTLS 1.2 corresponds to TLS 1.2 to harmonize versions. There was never a DTLS 1.1.
+-    #[cfg(any(ossl102, libressl332, boringssl, awslc))]
+     pub const DTLS1_2: SslVersion = SslVersion(ffi::DTLS1_2_VERSION);
+ }
+ 
+@@ -871,9 +864,21 @@ impl SslContextBuilder {
      }
  
      /// Sets the parameters to be used during ephemeral Diffie-Hellman key exchange.
@@ -6427,7 +7987,7 @@ index 696be0134..7c82fc4ab 100644
      }
  
      /// Sets the callback which will generate parameters to be used during ephemeral Diffie-Hellman
-@@ -883,6 +898,7 @@ impl SslContextBuilder {
+@@ -883,6 +888,7 @@ impl SslContextBuilder {
      /// indicating if the selected cipher is export-grade, and the key length. The export and key
      /// length options are archaic and should be ignored in almost all cases.
      #[corresponds(SSL_CTX_set_tmp_dh_callback)]
@@ -6435,7 +7995,7 @@ index 696be0134..7c82fc4ab 100644
      pub fn set_tmp_dh_callback<F>(&mut self, callback: F)
      where
          F: Fn(&mut SslRef, bool, u32) -> Result<Dh<Params>, ErrorStack> + 'static + Sync + Send,
-@@ -900,7 +916,13 @@ impl SslContextBuilder {
+@@ -900,7 +906,13 @@ impl SslContextBuilder {
      /// Sets the parameters to be used during ephemeral elliptic curve Diffie-Hellman key exchange.
      #[corresponds(SSL_CTX_set_tmp_ecdh)]
      pub fn set_tmp_ecdh(&mut self, key: &EcKeyRef<Params>) -> Result<(), ErrorStack> {
@@ -6450,7 +8010,19 @@ index 696be0134..7c82fc4ab 100644
      }
  
      /// Sets the callback which will generate parameters to be used during ephemeral elliptic curve
-@@ -1096,7 +1118,7 @@ impl SslContextBuilder {
+@@ -910,9 +922,9 @@ impl SslContextBuilder {
+     /// indicating if the selected cipher is export-grade, and the key length. The export and key
+     /// length options are archaic and should be ignored in almost all cases.
+     ///
+-    /// Requires OpenSSL 1.0.1 or 1.0.2.
++    /// Requires OpenSSL 1.0.2.
+     #[corresponds(SSL_CTX_set_tmp_ecdh_callback)]
+-    #[cfg(all(ossl101, not(ossl110)))]
++    #[cfg(all(ossl102, not(ossl110)))]
+     #[deprecated(note = "this function leaks memory and does not exist on newer OpenSSL versions")]
+     pub fn set_tmp_ecdh_callback<F>(&mut self, callback: F)
+     where
+@@ -1096,7 +1108,7 @@ impl SslContextBuilder {
      ///
      /// See [`ciphers`] for details on the format.
      ///
@@ -6459,7 +8031,78 @@ index 696be0134..7c82fc4ab 100644
      #[corresponds(SSL_CTX_set_cipher_list)]
      pub fn set_cipher_list(&mut self, cipher_list: &str) -> Result<(), ErrorStack> {
          let cipher_list = CString::new(cipher_list).unwrap();
-@@ -1269,6 +1291,7 @@ impl SslContextBuilder {
+@@ -1116,9 +1128,9 @@ impl SslContextBuilder {
+     /// The format consists of TLSv1.3 cipher suite names separated by `:` characters in order of
+     /// preference.
+     ///
+-    /// Requires OpenSSL 1.1.1 or LibreSSL 3.4.0 or newer.
++    /// Requires OpenSSL 1.1.1 or newer or LibreSSL.
+     #[corresponds(SSL_CTX_set_ciphersuites)]
+-    #[cfg(any(ossl111, libressl340))]
++    #[cfg(any(ossl111, libressl))]
+     pub fn set_ciphersuites(&mut self, cipher_list: &str) -> Result<(), ErrorStack> {
+         let cipher_list = CString::new(cipher_list).unwrap();
+         unsafe {
+@@ -1172,9 +1184,9 @@ impl SslContextBuilder {
+     /// A value of `None` will enable protocol versions down to the lowest version supported by
+     /// OpenSSL.
+     ///
+-    /// Requires AWS-LC or BoringSSL or OpenSSL 1.1.0 or LibreSSL 2.6.1 or newer.
++    /// Requires AWS-LC or BoringSSL or LibreSSL or OpenSSL 1.1.0 or newer.
+     #[corresponds(SSL_CTX_set_min_proto_version)]
+-    #[cfg(any(ossl110, libressl261, boringssl, awslc))]
++    #[cfg(any(ossl110, libressl, boringssl, awslc))]
+     pub fn set_min_proto_version(&mut self, version: Option<SslVersion>) -> Result<(), ErrorStack> {
+         unsafe {
+             cvt(ffi::SSL_CTX_set_min_proto_version(
+@@ -1190,9 +1202,9 @@ impl SslContextBuilder {
+     /// A value of `None` will enable protocol versions up to the highest version supported by
+     /// OpenSSL.
+     ///
+-    /// Requires AWS-LC or BoringSSL or OpenSSL 1.1.0 or or LibreSSL 2.6.1 or newer.
++    /// Requires AWS-LC or BoringSSL or LibreSSL or OpenSSL 1.1.0 or newer.
+     #[corresponds(SSL_CTX_set_max_proto_version)]
+-    #[cfg(any(ossl110, libressl261, boringssl, awslc))]
++    #[cfg(any(ossl110, libressl, boringssl, awslc))]
+     pub fn set_max_proto_version(&mut self, version: Option<SslVersion>) -> Result<(), ErrorStack> {
+         unsafe {
+             cvt(ffi::SSL_CTX_set_max_proto_version(
+@@ -1208,9 +1220,9 @@ impl SslContextBuilder {
+     /// A value of `None` indicates that all versions down to the lowest version supported by
+     /// OpenSSL are enabled.
+     ///
+-    /// Requires OpenSSL 1.1.0g or LibreSSL 2.7.0 or newer.
++    /// Requires LibreSSL or OpenSSL 1.1.0g or newer.
+     #[corresponds(SSL_CTX_get_min_proto_version)]
+-    #[cfg(any(ossl110g, libressl270))]
++    #[cfg(any(ossl110g, libressl))]
+     pub fn min_proto_version(&mut self) -> Option<SslVersion> {
+         unsafe {
+             let r = ffi::SSL_CTX_get_min_proto_version(self.as_ptr());
+@@ -1227,9 +1239,9 @@ impl SslContextBuilder {
+     /// A value of `None` indicates that all versions up to the highest version supported by
+     /// OpenSSL are enabled.
+     ///
+-    /// Requires OpenSSL 1.1.0g or LibreSSL 2.7.0 or newer.
++    /// Requires LibreSSL or OpenSSL 1.1.0g or newer.
+     #[corresponds(SSL_CTX_get_max_proto_version)]
+-    #[cfg(any(ossl110g, libressl270))]
++    #[cfg(any(ossl110g, libressl))]
+     pub fn max_proto_version(&mut self) -> Option<SslVersion> {
+         unsafe {
+             let r = ffi::SSL_CTX_get_max_proto_version(self.as_ptr());
+@@ -1248,9 +1260,8 @@ impl SslContextBuilder {
+     /// and `http/1.1` is encoded as `b"\x06spdy/1\x08http/1.1"`. The protocols are ordered by
+     /// preference.
+     ///
+-    /// Requires AWS-LC or BoringSSL or OpenSSL 1.0.2 or LibreSSL 2.6.1 or newer.
++    /// Requires AWS-LC or BoringSSL or LibreSSL or OpenSSL 1.0.2 or newer.
+     #[corresponds(SSL_CTX_set_alpn_protos)]
+-    #[cfg(any(ossl102, libressl261, boringssl, awslc))]
+     pub fn set_alpn_protos(&mut self, protocols: &[u8]) -> Result<(), ErrorStack> {
+         unsafe {
+             assert!(protocols.len() <= c_uint::MAX as usize);
+@@ -1269,6 +1280,7 @@ impl SslContextBuilder {
      }
  
      /// Enables the DTLS extension "use_srtp" as defined in RFC5764.
@@ -6467,7 +8110,114 @@ index 696be0134..7c82fc4ab 100644
      #[corresponds(SSL_CTX_set_tlsext_use_srtp)]
      pub fn set_tlsext_use_srtp(&mut self, protocols: &str) -> Result<(), ErrorStack> {
          unsafe {
-@@ -2141,6 +2164,18 @@ impl SslCipherRef {
+@@ -1292,12 +1304,11 @@ impl SslContextBuilder {
+     /// of those protocols on success. The [`select_next_proto`] function implements the standard
+     /// protocol selection algorithm.
+     ///
+-    /// Requires AWS-LC or BoringSSL or OpenSSL 1.0.2 or LibreSSL 2.6.1 or newer.
++    /// Requires AWS-LC or BoringSSL or LibreSSL or OpenSSL 1.0.2 or newer.
+     ///
+     /// [`SslContextBuilder::set_alpn_protos`]: struct.SslContextBuilder.html#method.set_alpn_protos
+     /// [`select_next_proto`]: fn.select_next_proto.html
+     #[corresponds(SSL_CTX_set_alpn_select_cb)]
+-    #[cfg(any(ossl102, libressl261, boringssl, awslc))]
+     pub fn set_alpn_select_callback<F>(&mut self, callback: F)
+     where
+         F: for<'a> Fn(&mut SslRef, &'a [u8]) -> Result<&'a [u8], AlpnError> + 'static + Sync + Send,
+@@ -1339,18 +1350,16 @@ impl SslContextBuilder {
+ 
+     /// Returns a reference to the X509 verification configuration.
+     ///
+-    /// Requires AWS-LC or BoringSSL or OpenSSL 1.0.2 or newer.
++    /// Requires AWS-LC or BoringSSL or LibreSSL or OpenSSL 1.0.2 or newer.
+     #[corresponds(SSL_CTX_get0_param)]
+-    #[cfg(any(ossl102, boringssl, libressl261, awslc))]
+     pub fn verify_param(&self) -> &X509VerifyParamRef {
+         unsafe { X509VerifyParamRef::from_ptr(ffi::SSL_CTX_get0_param(self.as_ptr())) }
+     }
+ 
+     /// Returns a mutable reference to the X509 verification configuration.
+     ///
+-    /// Requires AWS-LC or BoringSSL or OpenSSL 1.0.2 or newer.
++    /// Requires AWS-LC or BoringSSL or LibreSSL or OpenSSL 1.0.2 or newer.
+     #[corresponds(SSL_CTX_get0_param)]
+-    #[cfg(any(ossl102, boringssl, libressl261, awslc))]
+     pub fn verify_param_mut(&mut self) -> &mut X509VerifyParamRef {
+         unsafe { X509VerifyParamRef::from_ptr_mut(ffi::SSL_CTX_get0_param(self.as_ptr())) }
+     }
+@@ -1692,9 +1701,9 @@ impl SslContextBuilder {
+     ///
+     /// Defaults to 0.
+     ///
+-    /// Requires OpenSSL 1.1.1 or LibreSSL 3.4.0 or newer.
++    /// Requires OpenSSL 1.1.1 or newer or LibreSSL.
+     #[corresponds(SSL_CTX_set_max_early_data)]
+-    #[cfg(any(ossl111, libressl340))]
++    #[cfg(any(ossl111, libressl))]
+     pub fn set_max_early_data(&mut self, bytes: u32) -> Result<(), ErrorStack> {
+         if unsafe { ffi::SSL_CTX_set_max_early_data(self.as_ptr(), bytes) } == 1 {
+             Ok(())
+@@ -1751,9 +1760,9 @@ impl SslContextBuilder {
+ 
+     /// Sets the context's supported elliptic curve groups.
+     ///
+-    /// Requires AWS-LC or BoringSSL or OpenSSL 1.1.1 or LibreSSL 2.5.1 or newer.
++    /// Requires AWS-LC or BoringSSL or LibreSSL or OpenSSL 1.1.1 or newer.
+     #[corresponds(SSL_CTX_set1_groups_list)]
+-    #[cfg(any(ossl111, boringssl, libressl251, awslc))]
++    #[cfg(any(ossl111, boringssl, libressl, awslc))]
+     pub fn set_groups_list(&mut self, groups: &str) -> Result<(), ErrorStack> {
+         let groups = CString::new(groups).unwrap();
+         unsafe {
+@@ -1871,9 +1880,9 @@ impl SslContext {
+ impl SslContextRef {
+     /// Returns the certificate associated with this `SslContext`, if present.
+     ///
+-    /// Requires OpenSSL 1.0.2 or LibreSSL 2.7.0 or newer.
++    /// Requires LibreSSL or OpenSSL 1.0.2 or newer.
+     #[corresponds(SSL_CTX_get0_certificate)]
+-    #[cfg(any(ossl102, libressl270))]
++    #[cfg(any(ossl102, libressl))]
+     pub fn certificate(&self) -> Option<&X509Ref> {
+         unsafe {
+             let ptr = ffi::SSL_CTX_get0_certificate(self.as_ptr());
+@@ -1883,9 +1892,9 @@ impl SslContextRef {
+ 
+     /// Returns the private key associated with this `SslContext`, if present.
+     ///
+-    /// Requires OpenSSL 1.0.2 or LibreSSL 3.4.0 or newer.
++    /// Requires OpenSSL 1.0.2 or newer or LibreSSL.
+     #[corresponds(SSL_CTX_get0_privatekey)]
+-    #[cfg(any(ossl102, libressl340))]
++    #[cfg(any(ossl102, libressl))]
+     pub fn private_key(&self) -> Option<&PKeyRef<Private>> {
+         unsafe {
+             let ptr = ffi::SSL_CTX_get0_privatekey(self.as_ptr());
+@@ -1924,9 +1933,9 @@ impl SslContextRef {
+ 
+     /// Gets the maximum amount of early data that will be accepted on incoming connections.
+     ///
+-    /// Requires OpenSSL 1.1.1 or LibreSSL 3.4.0 or newer.
++    /// Requires OpenSSL 1.1.1 or newer or LibreSSL.
+     #[corresponds(SSL_CTX_get_max_early_data)]
+-    #[cfg(any(ossl111, libressl340))]
++    #[cfg(any(ossl111, libressl))]
+     pub fn max_early_data(&self) -> u32 {
+         unsafe { ffi::SSL_CTX_get_max_early_data(self.as_ptr()) }
+     }
+@@ -2130,9 +2139,9 @@ impl SslCipherRef {
+ 
+     /// Returns the NID corresponding to the cipher.
+     ///
+-    /// Requires OpenSSL 1.1.0 or LibreSSL 2.7.0 or newer.
++    /// Requires LibreSSL or OpenSSL 1.1.0 or newer.
+     #[corresponds(SSL_CIPHER_get_cipher_nid)]
+-    #[cfg(any(ossl110, libressl270))]
++    #[cfg(any(ossl110, libressl))]
+     pub fn cipher_nid(&self) -> Option<Nid> {
+         let n = unsafe { ffi::SSL_CIPHER_get_cipher_nid(self.as_ptr()) };
+         if n == 0 {
+@@ -2141,6 +2150,18 @@ impl SslCipherRef {
              Some(Nid::from_raw(n))
          }
      }
@@ -6486,7 +8236,31 @@ index 696be0134..7c82fc4ab 100644
  }
  
  impl fmt::Debug for SslCipherRef {
-@@ -2438,15 +2473,28 @@ impl SslRef {
+@@ -2226,9 +2247,9 @@ impl SslSessionRef {
+ 
+     /// Gets the maximum amount of early data that can be sent on this session.
+     ///
+-    /// Requires OpenSSL 1.1.1 or LibreSSL 3.4.0 or newer.
++    /// Requires OpenSSL 1.1.1 or newer or LibreSSL.
+     #[corresponds(SSL_SESSION_get_max_early_data)]
+-    #[cfg(any(ossl111, libressl340))]
++    #[cfg(any(ossl111, libressl))]
+     pub fn max_early_data(&self) -> u32 {
+         unsafe { ffi::SSL_SESSION_get_max_early_data(self.as_ptr()) }
+     }
+@@ -2251,9 +2272,9 @@ impl SslSessionRef {
+ 
+     /// Returns the session's TLS protocol version.
+     ///
+-    /// Requires OpenSSL 1.1.0 or LibreSSL 2.7.0 or newer.
++    /// Requires LibreSSL or OpenSSL 1.1.0 or newer.
+     #[corresponds(SSL_SESSION_get_protocol_version)]
+-    #[cfg(any(ossl110, libressl270))]
++    #[cfg(any(ossl110, libressl))]
+     pub fn protocol_version(&self) -> SslVersion {
+         unsafe {
+             let version = ffi::SSL_SESSION_get_protocol_version(self.as_ptr());
+@@ -2438,15 +2459,28 @@ impl SslRef {
      /// Like [`SslContextBuilder::set_tmp_dh`].
      ///
      /// [`SslContextBuilder::set_tmp_dh`]: struct.SslContextBuilder.html#method.set_tmp_dh
@@ -6517,7 +8291,7 @@ index 696be0134..7c82fc4ab 100644
      pub fn set_tmp_dh_callback<F>(&mut self, callback: F)
      where
          F: Fn(&mut SslRef, bool, u32) -> Result<Dh<Params>, ErrorStack> + 'static + Sync + Send,
-@@ -2466,7 +2514,18 @@ impl SslRef {
+@@ -2466,14 +2500,25 @@ impl SslRef {
      /// [`SslContextBuilder::set_tmp_ecdh`]: struct.SslContextBuilder.html#method.set_tmp_ecdh
      #[corresponds(SSL_set_tmp_ecdh)]
      pub fn set_tmp_ecdh(&mut self, key: &EcKeyRef<Params>) -> Result<(), ErrorStack> {
@@ -6537,7 +8311,40 @@ index 696be0134..7c82fc4ab 100644
      }
  
      /// Like [`SslContextBuilder::set_tmp_ecdh_callback`].
-@@ -2675,6 +2734,7 @@ impl SslRef {
+     ///
+-    /// Requires OpenSSL 1.0.1 or 1.0.2.
++    /// Requires OpenSSL 1.0.2.
+     #[corresponds(SSL_set_tmp_ecdh_callback)]
+-    #[cfg(all(ossl101, not(ossl110)))]
++    #[cfg(all(ossl102, not(ossl110)))]
+     #[deprecated(note = "this function leaks memory and does not exist on newer OpenSSL versions")]
+     pub fn set_tmp_ecdh_callback<F>(&mut self, callback: F)
+     where
+@@ -2499,11 +2544,10 @@ impl SslRef {
+ 
+     /// Like [`SslContextBuilder::set_alpn_protos`].
+     ///
+-    /// Requires AWS-LC or BoringSSL or OpenSSL 1.0.2 or LibreSSL 2.6.1 or newer.
++    /// Requires AWS-LC or BoringSSL or LibreSSL or OpenSSL 1.0.2 or newer.
+     ///
+     /// [`SslContextBuilder::set_alpn_protos`]: struct.SslContextBuilder.html#method.set_alpn_protos
+     #[corresponds(SSL_set_alpn_protos)]
+-    #[cfg(any(ossl102, libressl261, boringssl, awslc))]
+     pub fn set_alpn_protos(&mut self, protocols: &[u8]) -> Result<(), ErrorStack> {
+         unsafe {
+             assert!(protocols.len() <= c_uint::MAX as usize);
+@@ -2655,9 +2699,8 @@ impl SslRef {
+     /// The protocol's name is returned is an opaque sequence of bytes. It is up to the client
+     /// to interpret it.
+     ///
+-    /// Requires AWS-LC or BoringSSL or OpenSSL 1.0.2 or LibreSSL 2.6.1 or newer.
++    /// Requires AWS-LC or BoringSSL or LibreSSL or OpenSSL 1.0.2 or newer.
+     #[corresponds(SSL_get0_alpn_selected)]
+-    #[cfg(any(ossl102, libressl261, boringssl, awslc))]
+     pub fn selected_alpn_protocol(&self) -> Option<&[u8]> {
+         unsafe {
+             let mut data: *const c_uchar = ptr::null();
+@@ -2675,6 +2718,7 @@ impl SslRef {
      }
  
      /// Enables the DTLS extension "use_srtp" as defined in RFC5764.
@@ -6545,7 +8352,7 @@ index 696be0134..7c82fc4ab 100644
      #[corresponds(SSL_set_tlsext_use_srtp)]
      pub fn set_tlsext_use_srtp(&mut self, protocols: &str) -> Result<(), ErrorStack> {
          unsafe {
-@@ -2693,6 +2753,7 @@ impl SslRef {
+@@ -2693,6 +2737,7 @@ impl SslRef {
      /// Gets all SRTP profiles that are enabled for handshake via set_tlsext_use_srtp
      ///
      /// DTLS extension "use_srtp" as defined in RFC5764 has to be enabled.
@@ -6553,7 +8360,7 @@ index 696be0134..7c82fc4ab 100644
      #[corresponds(SSL_get_srtp_profiles)]
      pub fn srtp_profiles(&self) -> Option<&StackRef<SrtpProtectionProfile>> {
          unsafe {
-@@ -2705,6 +2766,7 @@ impl SslRef {
+@@ -2705,6 +2750,7 @@ impl SslRef {
      /// Gets the SRTP profile selected by handshake.
      ///
      /// DTLS extension "use_srtp" as defined in RFC5764 has to be enabled.
@@ -6561,7 +8368,7 @@ index 696be0134..7c82fc4ab 100644
      #[corresponds(SSL_get_selected_srtp_profile)]
      pub fn selected_srtp_profile(&self) -> Option<&SrtpProtectionProfileRef> {
          unsafe {
-@@ -2734,7 +2796,7 @@ impl SslRef {
+@@ -2734,7 +2780,7 @@ impl SslRef {
      /// is not valid UTF-8, this function will return `None`. The `servername_raw` method returns
      /// the raw bytes and does not have this restriction.
      ///
@@ -6570,7 +8377,111 @@ index 696be0134..7c82fc4ab 100644
      #[corresponds(SSL_get_servername)]
      // FIXME maybe rethink in 0.11?
      pub fn servername(&self, type_: NameType) -> Option<&str> {
-@@ -3400,7 +3462,7 @@ impl SslRef {
+@@ -2780,9 +2826,8 @@ impl SslRef {
+ 
+     /// Returns a mutable reference to the X509 verification configuration.
+     ///
+-    /// Requires AWS-LC or BoringSSL or OpenSSL 1.0.2 or newer.
++    /// Requires AWS-LC or BoringSSL or LibreSSL or OpenSSL 1.0.2 or newer.
+     #[corresponds(SSL_get0_param)]
+-    #[cfg(any(ossl102, boringssl, libressl261, awslc))]
+     pub fn param_mut(&mut self) -> &mut X509VerifyParamRef {
+         unsafe { X509VerifyParamRef::from_ptr_mut(ffi::SSL_get0_param(self.as_ptr())) }
+     }
+@@ -2807,9 +2852,9 @@ impl SslRef {
+     /// Returns the number of bytes copied, or if the buffer is empty, the size of the `client_random`
+     /// value.
+     ///
+-    /// Requires OpenSSL 1.1.0 or LibreSSL 2.7.0 or newer.
++    /// Requires LibreSSL or OpenSSL 1.1.0 or newer.
+     #[corresponds(SSL_get_client_random)]
+-    #[cfg(any(ossl110, libressl270))]
++    #[cfg(any(ossl110, libressl))]
+     pub fn client_random(&self, buf: &mut [u8]) -> usize {
+         unsafe {
+             ffi::SSL_get_client_random(self.as_ptr(), buf.as_mut_ptr() as *mut c_uchar, buf.len())
+@@ -2821,9 +2866,9 @@ impl SslRef {
+     /// Returns the number of bytes copied, or if the buffer is empty, the size of the `server_random`
+     /// value.
+     ///
+-    /// Requires OpenSSL 1.1.0 or LibreSSL 2.7.0 or newer.
++    /// Requires LibreSSL or OpenSSL 1.1.0 or newer.
+     #[corresponds(SSL_get_server_random)]
+-    #[cfg(any(ossl110, libressl270))]
++    #[cfg(any(ossl110, libressl))]
+     pub fn server_random(&self, buf: &mut [u8]) -> usize {
+         unsafe {
+             ffi::SSL_get_server_random(self.as_ptr(), buf.as_mut_ptr() as *mut c_uchar, buf.len())
+@@ -3019,9 +3064,9 @@ impl SslRef {
+ 
+     /// Sets the maximum amount of early data that will be accepted on this connection.
+     ///
+-    /// Requires OpenSSL 1.1.1 or LibreSSL 3.4.0 or newer.
++    /// Requires OpenSSL 1.1.1 or newer or LibreSSL.
+     #[corresponds(SSL_set_max_early_data)]
+-    #[cfg(any(ossl111, libressl340))]
++    #[cfg(any(ossl111, libressl))]
+     pub fn set_max_early_data(&mut self, bytes: u32) -> Result<(), ErrorStack> {
+         if unsafe { ffi::SSL_set_max_early_data(self.as_ptr(), bytes) } == 1 {
+             Ok(())
+@@ -3032,9 +3077,9 @@ impl SslRef {
+ 
+     /// Gets the maximum amount of early data that can be sent on this connection.
+     ///
+-    /// Requires OpenSSL 1.1.1 or LibreSSL 3.4.0 or newer.
++    /// Requires OpenSSL 1.1.1 or newer or LibreSSL.
+     #[corresponds(SSL_get_max_early_data)]
+-    #[cfg(any(ossl111, libressl340))]
++    #[cfg(any(ossl111, libressl))]
+     pub fn max_early_data(&self) -> u32 {
+         unsafe { ffi::SSL_get_max_early_data(self.as_ptr()) }
+     }
+@@ -3305,7 +3350,7 @@ impl SslRef {
+     /// certificate, and the remainder forming the chain of certificates up to and including the
+     /// trusted root certificate.
+     #[corresponds(SSL_use_certificate_chain_file)]
+-    #[cfg(any(ossl110, libressl332))]
++    #[cfg(any(ossl110, libressl))]
+     pub fn set_certificate_chain_file<P: AsRef<Path>>(
+         &mut self,
+         path: P,
+@@ -3342,9 +3387,9 @@ impl SslRef {
+     /// A value of `None` will enable protocol versions down to the lowest version supported by
+     /// OpenSSL.
+     ///
+-    /// Requires AWS-LC or BoringSSL or OpenSSL 1.1.0 or LibreSSL 2.6.1 or newer.
++    /// Requires AWS-LC or BoringSSL or LibreSSL or OpenSSL 1.1.0 or newer.
+     #[corresponds(SSL_set_min_proto_version)]
+-    #[cfg(any(ossl110, libressl261, boringssl, awslc))]
++    #[cfg(any(ossl110, libressl, boringssl, awslc))]
+     pub fn set_min_proto_version(&mut self, version: Option<SslVersion>) -> Result<(), ErrorStack> {
+         unsafe {
+             cvt(ffi::SSL_set_min_proto_version(
+@@ -3360,9 +3405,9 @@ impl SslRef {
+     /// A value of `None` will enable protocol versions up to the highest version supported by
+     /// OpenSSL.
+     ///
+-    /// Requires AWS-LC or BoringSSL or OpenSSL 1.1.0 or or LibreSSL 2.6.1 or newer.
++    /// Requires AWS-LC or BoringSSL or LibreSSL or OpenSSL 1.1.0 or newer.
+     #[corresponds(SSL_set_max_proto_version)]
+-    #[cfg(any(ossl110, libressl261, boringssl, awslc))]
++    #[cfg(any(ossl110, libressl, boringssl, awslc))]
+     pub fn set_max_proto_version(&mut self, version: Option<SslVersion>) -> Result<(), ErrorStack> {
+         unsafe {
+             cvt(ffi::SSL_set_max_proto_version(
+@@ -3380,9 +3425,9 @@ impl SslRef {
+     /// The format consists of TLSv1.3 cipher suite names separated by `:` characters in order of
+     /// preference.
+     ///
+-    /// Requires OpenSSL 1.1.1 or LibreSSL 3.4.0 or newer.
++    /// Requires OpenSSL 1.1.1 or newer or LibreSSL.
+     #[corresponds(SSL_set_ciphersuites)]
+-    #[cfg(any(ossl111, libressl340))]
++    #[cfg(any(ossl111, libressl))]
+     pub fn set_ciphersuites(&mut self, cipher_list: &str) -> Result<(), ErrorStack> {
+         let cipher_list = CString::new(cipher_list).unwrap();
+         unsafe {
+@@ -3400,7 +3445,7 @@ impl SslRef {
      ///
      /// See [`ciphers`] for details on the format.
      ///
@@ -6579,27 +8490,264 @@ index 696be0134..7c82fc4ab 100644
      #[corresponds(SSL_set_cipher_list)]
      pub fn set_cipher_list(&mut self, cipher_list: &str) -> Result<(), ErrorStack> {
          let cipher_list = CString::new(cipher_list).unwrap();
+@@ -3628,9 +3673,9 @@ impl<S: Read + Write> SslStream<S> {
+     ///
+     /// Returns `Ok(0)` if all early data has been read.
+     ///
+-    /// Requires OpenSSL 1.1.1 or LibreSSL 3.4.0 or newer.
++    /// Requires OpenSSL 1.1.1 or newer or LibreSSL.
+     #[corresponds(SSL_read_early_data)]
+-    #[cfg(any(ossl111, libressl340))]
++    #[cfg(any(ossl111, libressl))]
+     pub fn read_early_data(&mut self, buf: &mut [u8]) -> Result<usize, Error> {
+         let mut read = 0;
+         let ret = unsafe {
+@@ -3654,9 +3699,9 @@ impl<S: Read + Write> SslStream<S> {
+     /// Useful for reducing latency, but vulnerable to replay attacks. Call
+     /// [`SslRef::set_connect_state`] first.
+     ///
+-    /// Requires OpenSSL 1.1.1 or LibreSSL 3.4.0 or newer.
++    /// Requires OpenSSL 1.1.1 or newer or LibreSSL.
+     #[corresponds(SSL_write_early_data)]
+-    #[cfg(any(ossl111, libressl340))]
++    #[cfg(any(ossl111, libressl))]
+     pub fn write_early_data(&mut self, buf: &[u8]) -> Result<usize, Error> {
+         let mut written = 0;
+         let ret = unsafe {
+@@ -3789,7 +3834,7 @@ impl<S: Read + Write> SslStream<S> {
+     #[corresponds(SSL_read_ex)]
+     pub fn ssl_read_uninit(&mut self, buf: &mut [MaybeUninit<u8>]) -> Result<usize, Error> {
+         cfg_if! {
+-            if #[cfg(any(ossl111, libressl350))] {
++            if #[cfg(any(ossl111, libressl))] {
+                 let mut readbytes = 0;
+                 let ret = unsafe {
+                     ffi::SSL_read_ex(
+@@ -3830,7 +3875,7 @@ impl<S: Read + Write> SslStream<S> {
+     #[corresponds(SSL_write_ex)]
+     pub fn ssl_write(&mut self, buf: &[u8]) -> Result<usize, Error> {
+         cfg_if! {
+-            if #[cfg(any(ossl111, libressl350))] {
++            if #[cfg(any(ossl111, libressl))] {
+                 let mut written = 0;
+                 let ret = unsafe {
+                     ffi::SSL_write_ex(
+@@ -3868,7 +3913,7 @@ impl<S: Read + Write> SslStream<S> {
+     #[corresponds(SSL_peek_ex)]
+     pub fn ssl_peek(&mut self, buf: &mut [u8]) -> Result<usize, Error> {
+         cfg_if! {
+-            if #[cfg(any(ossl111, libressl350))] {
++            if #[cfg(any(ossl111, libressl))] {
+                 let mut readbytes = 0;
+                 let ret = unsafe {
+                     ffi::SSL_peek_ex(
+@@ -4156,9 +4201,9 @@ where
+     ///
+     /// Returns `Ok(0)` if all early data has been read.
+     ///
+-    /// Requires OpenSSL 1.1.1 or LibreSSL 3.4.0 or newer.
++    /// Requires OpenSSL 1.1.1 or newer or LibreSSL.
+     #[corresponds(SSL_read_early_data)]
+-    #[cfg(any(ossl111, libressl340))]
++    #[cfg(any(ossl111, libressl))]
+     pub fn read_early_data(&mut self, buf: &mut [u8]) -> Result<usize, Error> {
+         self.inner.read_early_data(buf)
+     }
+@@ -4168,9 +4213,9 @@ where
+     /// Useful for reducing latency, but vulnerable to replay attacks. Call
+     /// `set_connect_state` first.
+     ///
+-    /// Requires OpenSSL 1.1.1 or LibreSSL 3.4.0 or newer.
++    /// Requires OpenSSL 1.1.1 or newer or LibreSSL.
+     #[corresponds(SSL_write_early_data)]
+-    #[cfg(any(ossl111, libressl340))]
++    #[cfg(any(ossl111, libressl))]
+     pub fn write_early_data(&mut self, buf: &[u8]) -> Result<usize, Error> {
+         self.inner.write_early_data(buf)
+     }
+@@ -4243,7 +4288,7 @@ bitflags! {
+ }
+ 
+ cfg_if! {
+-    if #[cfg(any(boringssl, ossl110, libressl273, awslc))] {
++    if #[cfg(any(boringssl, ossl110, libressl, awslc))] {
+         use ffi::{SSL_CTX_up_ref, SSL_SESSION_get_master_key, SSL_SESSION_up_ref, SSL_is_server};
+     } else {
+         #[allow(bad_style)]
+@@ -4301,7 +4346,7 @@ cfg_if! {
+     }
+ }
+ cfg_if! {
+-    if #[cfg(any(boringssl, ossl110, libressl291, awslc))] {
++    if #[cfg(any(boringssl, ossl110, libressl, awslc))] {
+         use ffi::{TLS_method, DTLS_method, TLS_client_method, TLS_server_method, DTLS_server_method, DTLS_client_method};
+     } else {
+         use ffi::{
 diff --git a/src/ssl/test/mod.rs b/src/ssl/test/mod.rs
-index 69b947b90..13148ca7b 100644
+index 69b947b..dbf8843 100644
 --- a/src/ssl/test/mod.rs
 +++ b/src/ssl/test/mod.rs
-@@ -969,6 +969,7 @@ fn cert_store() {
+@@ -22,7 +22,7 @@ use crate::ocsp::{OcspResponse, OcspResponseStatus};
+ use crate::pkey::{Id, PKey};
+ use crate::srtp::SrtpProfileId;
+ use crate::ssl::test::server::Server;
+-#[cfg(any(ossl110, ossl111, libressl261))]
++#[cfg(any(ossl110, ossl111, libressl))]
+ use crate::ssl::SslVersion;
+ use crate::ssl::{self, NameType, SslConnectorBuilder};
+ #[cfg(ossl111)]
+@@ -504,7 +504,6 @@ fn test_connect_with_srtp_ssl() {
+ /// Tests that when the `SslStream` is created as a server stream, the protocols
+ /// are correctly advertised to the client.
+ #[test]
+-#[cfg(any(ossl102, libressl261, boringssl, awslc))]
+ fn test_alpn_server_advertise_multiple() {
+     let mut server = Server::builder();
+     server.ctx().set_alpn_select_callback(|_, client| {
+@@ -535,7 +534,6 @@ fn test_alpn_server_select_none_fatal() {
  }
  
  #[test]
+-#[cfg(any(ossl102, libressl261, boringssl, awslc))]
+ fn test_alpn_server_select_none() {
+     static CALLED_BACK: AtomicBool = AtomicBool::new(false);
+ 
+@@ -554,7 +552,6 @@ fn test_alpn_server_select_none() {
+ }
+ 
+ #[test]
+-#[cfg(any(boringssl, ossl102, libressl261, awslc))]
+ fn test_alpn_server_unilateral() {
+     let server = Server::builder().build();
+ 
+@@ -627,7 +624,6 @@ fn read_panic() {
+ }
+ 
+ #[test]
+-#[cfg_attr(all(libressl321, not(libressl340)), ignore)]
+ #[should_panic(expected = "blammo")]
+ fn flush_panic() {
+     struct ExplodingStream(TcpStream);
+@@ -672,7 +668,7 @@ fn refcount_ssl_context() {
+ }
+ 
+ #[test]
+-#[cfg_attr(libressl250, ignore)]
++#[cfg_attr(libressl, ignore)]
+ #[cfg_attr(target_os = "windows", ignore)]
+ #[cfg_attr(all(target_os = "macos", feature = "vendored"), ignore)]
+ fn default_verify_paths() {
+@@ -921,7 +917,7 @@ fn connector_client_server_mozilla_intermediate_v5() {
+ }
+ 
+ #[test]
+-#[cfg(any(ossl111, libressl340))]
++#[cfg(any(ossl111, libressl))]
+ fn connector_client_server_mozilla_modern_v5() {
+     test_mozilla_server(SslAcceptor::mozilla_modern_v5);
+ }
+@@ -969,7 +965,8 @@ fn cert_store() {
+ }
+ 
+ #[test]
+-#[cfg_attr(any(all(libressl321, not(libressl340)), boringssl, awslc), ignore)]
 +#[cfg(not(osslconf = "OPENSSL_NO_DEPRECATED_3_0"))]
- #[cfg_attr(any(all(libressl321, not(libressl340)), boringssl, awslc), ignore)]
++#[cfg_attr(any(boringssl, awslc), ignore)]
  fn tmp_dh_callback() {
      static CALLED_BACK: AtomicBool = AtomicBool::new(false);
-@@ -1017,6 +1018,7 @@ fn tmp_ecdh_callback() {
+ 
+@@ -984,7 +981,7 @@ fn tmp_dh_callback() {
+ 
+     let mut client = server.client();
+     // TLS 1.3 has no DH suites, so make sure we don't pick that version
+-    #[cfg(any(ossl111, libressl340))]
++    #[cfg(any(ossl111, libressl))]
+     client.ctx().set_options(super::SslOptions::NO_TLSV1_3);
+     client.ctx().set_cipher_list("EDH").unwrap();
+     client.connect();
+@@ -993,7 +990,7 @@ fn tmp_dh_callback() {
  }
  
  #[test]
+-#[cfg(all(ossl101, not(ossl110)))]
++#[cfg(all(ossl102, not(ossl110)))]
+ #[allow(deprecated)]
+ fn tmp_ecdh_callback() {
+     use crate::ec::EcKey;
+@@ -1017,7 +1014,8 @@ fn tmp_ecdh_callback() {
+ }
+ 
+ #[test]
+-#[cfg_attr(any(all(libressl321, not(libressl340)), boringssl, awslc), ignore)]
 +#[cfg(not(osslconf = "OPENSSL_NO_DEPRECATED_3_0"))]
- #[cfg_attr(any(all(libressl321, not(libressl340)), boringssl, awslc), ignore)]
++#[cfg_attr(any(boringssl, awslc), ignore)]
  fn tmp_dh_callback_ssl() {
      static CALLED_BACK: AtomicBool = AtomicBool::new(false);
-@@ -1687,3 +1689,21 @@ fn ssl_ex_data_leak() {
+ 
+@@ -1034,7 +1032,7 @@ fn tmp_dh_callback_ssl() {
+ 
+     let mut client = server.client();
+     // TLS 1.3 has no DH suites, so make sure we don't pick that version
+-    #[cfg(any(ossl111, libressl340))]
++    #[cfg(any(ossl111, libressl))]
+     client.ctx().set_options(super::SslOptions::NO_TLSV1_3);
+     client.ctx().set_cipher_list("EDH").unwrap();
+     client.connect();
+@@ -1043,7 +1041,7 @@ fn tmp_dh_callback_ssl() {
+ }
+ 
+ #[test]
+-#[cfg(all(ossl101, not(ossl110)))]
++#[cfg(all(ossl102, not(ossl110)))]
+ #[allow(deprecated)]
+ fn tmp_ecdh_callback_ssl() {
+     use crate::ec::EcKey;
+@@ -1079,7 +1077,7 @@ fn idle_session() {
+ /// not work due to lack of PSK support. The test passes with NO_TLSV1_3,
+ /// but let's ignore it until LibreSSL supports it out of the box.
+ #[test]
+-#[cfg_attr(libressl321, ignore)]
++#[cfg_attr(libressl, ignore)]
+ fn active_session() {
+     let server = Server::builder().build();
+ 
+@@ -1139,7 +1137,7 @@ fn status_callbacks() {
+ /// not work due to lack of PSK support. The test passes with NO_TLSV1_3,
+ /// but let's ignore it until LibreSSL supports it out of the box.
+ #[test]
+-#[cfg_attr(libressl321, ignore)]
++#[cfg_attr(libressl, ignore)]
+ fn new_session_callback() {
+     static CALLED_BACK: AtomicBool = AtomicBool::new(false);
+ 
+@@ -1166,7 +1164,7 @@ fn new_session_callback() {
+ /// not work due to lack of PSK support. The test passes with NO_TLSV1_3,
+ /// but let's ignore it until LibreSSL supports it out of the box.
+ #[test]
+-#[cfg_attr(libressl321, ignore)]
++#[cfg_attr(libressl, ignore)]
+ fn new_session_callback_swapped_ctx() {
+     static CALLED_BACK: AtomicBool = AtomicBool::new(false);
+ 
+@@ -1242,7 +1240,7 @@ fn keying_export() {
+ }
+ 
+ #[test]
+-#[cfg(any(ossl110, libressl261))]
++#[cfg(any(ossl110, libressl))]
+ fn no_version_overlap() {
+     let mut server = Server::builder();
+     server.ctx().set_min_proto_version(None).unwrap();
+@@ -1250,7 +1248,7 @@ fn no_version_overlap() {
+         .ctx()
+         .set_max_proto_version(Some(SslVersion::TLS1_1))
+         .unwrap();
+-    #[cfg(any(ossl110g, libressl270))]
++    #[cfg(any(ossl110g, libressl))]
+     assert_eq!(server.ctx().max_proto_version(), Some(SslVersion::TLS1_1));
+     server.should_error();
+     let server = server.build();
+@@ -1687,3 +1685,21 @@ fn ssl_ex_data_leak() {
      drop(ssl);
      assert_eq!(DROPS.load(Ordering::Relaxed), 2);
  }
@@ -6622,7 +8770,7 @@ index 69b947b90..13148ca7b 100644
 +    assert_eq!(cipher_id, [0x13, 0x02]);
 +}
 diff --git a/src/symm.rs b/src/symm.rs
-index 4675772f8..4fa49e4b5 100644
+index 4675772..1ff9596 100644
 --- a/src/symm.rs
 +++ b/src/symm.rs
 @@ -69,7 +69,7 @@ pub enum Mode {
@@ -6658,11 +8806,101 @@ index 4675772f8..4fa49e4b5 100644
      pub fn aes_256_cfb128() -> Cipher {
          unsafe { Cipher(ffi::EVP_aes_256_cfb128()) }
      }
+@@ -378,7 +381,7 @@ impl Cipher {
+     }
+ 
+     /// Requires OpenSSL 1.1.0 or newer.
+-    #[cfg(all(any(ossl110, libressl310), not(osslconf = "OPENSSL_NO_CHACHA")))]
++    #[cfg(all(any(ossl110, libressl), not(osslconf = "OPENSSL_NO_CHACHA")))]
+     pub fn chacha20() -> Cipher {
+         unsafe { Cipher(ffi::EVP_chacha20()) }
+     }
+@@ -429,27 +432,27 @@ impl Cipher {
+         unsafe { Cipher(ffi::EVP_seed_ofb()) }
+     }
+ 
+-    #[cfg(all(any(ossl111, libressl291), not(osslconf = "OPENSSL_NO_SM4")))]
++    #[cfg(all(any(ossl111, libressl), not(osslconf = "OPENSSL_NO_SM4")))]
+     pub fn sm4_ecb() -> Cipher {
+         unsafe { Cipher(ffi::EVP_sm4_ecb()) }
+     }
+ 
+-    #[cfg(all(any(ossl111, libressl291), not(osslconf = "OPENSSL_NO_SM4")))]
++    #[cfg(all(any(ossl111, libressl), not(osslconf = "OPENSSL_NO_SM4")))]
+     pub fn sm4_cbc() -> Cipher {
+         unsafe { Cipher(ffi::EVP_sm4_cbc()) }
+     }
+ 
+-    #[cfg(all(any(ossl111, libressl291), not(osslconf = "OPENSSL_NO_SM4")))]
++    #[cfg(all(any(ossl111, libressl), not(osslconf = "OPENSSL_NO_SM4")))]
+     pub fn sm4_ctr() -> Cipher {
+         unsafe { Cipher(ffi::EVP_sm4_ctr()) }
+     }
+ 
+-    #[cfg(all(any(ossl111, libressl291), not(osslconf = "OPENSSL_NO_SM4")))]
++    #[cfg(all(any(ossl111, libressl), not(osslconf = "OPENSSL_NO_SM4")))]
+     pub fn sm4_cfb128() -> Cipher {
+         unsafe { Cipher(ffi::EVP_sm4_cfb128()) }
+     }
+ 
+-    #[cfg(all(any(ossl111, libressl291), not(osslconf = "OPENSSL_NO_SM4")))]
++    #[cfg(all(any(ossl111, libressl), not(osslconf = "OPENSSL_NO_SM4")))]
+     pub fn sm4_ofb() -> Cipher {
+         unsafe { Cipher(ffi::EVP_sm4_ofb()) }
+     }
+@@ -916,7 +919,7 @@ pub fn decrypt_aead(
+ }
+ 
+ cfg_if! {
+-    if #[cfg(any(boringssl, ossl110, libressl273, awslc))] {
++    if #[cfg(any(boringssl, ossl110, libressl, awslc))] {
+         use ffi::{EVP_CIPHER_block_size, EVP_CIPHER_iv_length, EVP_CIPHER_key_length};
+     } else {
+         use crate::LenType;
+@@ -1618,7 +1621,7 @@ mod tests {
+     }
+ 
+     #[test]
+-    #[cfg(any(ossl110, libressl310))]
++    #[cfg(any(ossl110, libressl))]
+     fn test_chacha20() {
+         let key = "0000000000000000000000000000000000000000000000000000000000000000";
+         let iv = "00000000000000000000000000000000";
+@@ -1732,7 +1735,7 @@ mod tests {
+     // GB/T 32907-2016
+     // http://openstd.samr.gov.cn/bzgk/gb/newGbInfo?hcno=7803DE42D3BC5E80B0C3E5D8E873D56A
+     #[test]
+-    #[cfg(all(any(ossl111, libressl291), not(osslconf = "OPENSSL_NO_SM4")))]
++    #[cfg(all(any(ossl111, libressl), not(osslconf = "OPENSSL_NO_SM4")))]
+     fn test_sm4_ecb() {
+         use std::mem;
+ 
+diff --git a/src/version.rs b/src/version.rs
+index aaadd3e..dc6f66a 100644
+--- a/src/version.rs
++++ b/src/version.rs
+@@ -18,7 +18,7 @@ use openssl_macros::corresponds;
+ use std::ffi::CStr;
+ 
+ cfg_if! {
+-    if #[cfg(any(ossl110, libressl271))] {
++    if #[cfg(any(ossl110, libressl))] {
+         use ffi::{
+             OPENSSL_VERSION, OPENSSL_CFLAGS, OPENSSL_BUILT_ON, OPENSSL_PLATFORM, OPENSSL_DIR,
+             OpenSSL_version_num, OpenSSL_version,
 diff --git a/src/x509/mod.rs b/src/x509/mod.rs
-index c4e0c5b4e..2867f91ad 100644
+index c4e0c5b..5fe84fb 100644
 --- a/src/x509/mod.rs
 +++ b/src/x509/mod.rs
-@@ -121,8 +121,8 @@ impl X509StoreContextRef {
+@@ -40,7 +40,6 @@ use crate::util::{self, ForeignTypeExt, ForeignTypeRefExt};
+ use crate::{cvt, cvt_n, cvt_p, cvt_p_const};
+ use openssl_macros::corresponds;
+ 
+-#[cfg(any(ossl102, boringssl, libressl261, awslc))]
+ pub mod verify;
+ 
+ pub mod extension;
+@@ -121,8 +120,8 @@ impl X509StoreContextRef {
      /// This corresponds to [`X509_STORE_CTX_init`] before calling `with_context` and to
      /// [`X509_STORE_CTX_cleanup`] after calling `with_context`.
      ///
@@ -6673,7 +8911,15 @@ index c4e0c5b4e..2867f91ad 100644
      pub fn init<F, T>(
          &mut self,
          trust: &store::X509StoreRef,
-@@ -1206,7 +1206,7 @@ impl X509Name {
+@@ -1071,7 +1070,6 @@ impl X509NameBuilder {
+ 
+     /// Add a name entry
+     #[corresponds(X509_NAME_add_entry)]
+-    #[cfg(any(ossl101, libressl350))]
+     pub fn append_entry(&mut self, ne: &X509NameEntryRef) -> std::result::Result<(), ErrorStack> {
+         unsafe {
+             cvt(ffi::X509_NAME_add_entry(
+@@ -1206,7 +1204,7 @@ impl X509Name {
          ///
          /// This corresponds to [`d2i_X509_NAME`].
          ///
@@ -6682,7 +8928,16 @@ index c4e0c5b4e..2867f91ad 100644
          from_der,
          X509Name,
          ffi::d2i_X509_NAME
-@@ -1263,7 +1263,7 @@ impl X509NameRef {
+@@ -1253,7 +1251,7 @@ impl X509NameRef {
+ 
+     /// Copies the name to a new `X509Name`.
+     #[corresponds(X509_NAME_dup)]
+-    #[cfg(any(boringssl, ossl110, libressl270, awslc))]
++    #[cfg(any(boringssl, ossl110, libressl, awslc))]
+     pub fn to_owned(&self) -> Result<X509Name, ErrorStack> {
+         unsafe { cvt_p(ffi::X509_NAME_dup(self.as_ptr())).map(|n| X509Name::from_ptr(n)) }
+     }
+@@ -1263,7 +1261,7 @@ impl X509NameRef {
          ///
          /// This corresponds to [`i2d_X509_NAME`].
          ///
@@ -6691,7 +8946,7 @@ index c4e0c5b4e..2867f91ad 100644
          to_der,
          ffi::i2d_X509_NAME
      }
-@@ -1479,7 +1479,7 @@ impl X509Req {
+@@ -1479,7 +1477,7 @@ impl X509Req {
          ///
          /// This corresponds to [`PEM_read_bio_X509_REQ`].
          ///
@@ -6700,7 +8955,7 @@ index c4e0c5b4e..2867f91ad 100644
          from_pem,
          X509Req,
          ffi::PEM_read_bio_X509_REQ
-@@ -1490,7 +1490,7 @@ impl X509Req {
+@@ -1490,7 +1488,7 @@ impl X509Req {
          ///
          /// This corresponds to [`d2i_X509_REQ`].
          ///
@@ -6709,7 +8964,7 @@ index c4e0c5b4e..2867f91ad 100644
          from_der,
          X509Req,
          ffi::d2i_X509_REQ
-@@ -1505,7 +1505,7 @@ impl X509ReqRef {
+@@ -1505,7 +1503,7 @@ impl X509ReqRef {
          ///
          /// This corresponds to [`PEM_write_bio_X509_REQ`].
          ///
@@ -6718,7 +8973,7 @@ index c4e0c5b4e..2867f91ad 100644
          to_pem,
          ffi::PEM_write_bio_X509_REQ
      }
-@@ -1515,7 +1515,7 @@ impl X509ReqRef {
+@@ -1515,7 +1513,7 @@ impl X509ReqRef {
          ///
          /// This corresponds to [`i2d_X509_REQ`].
          ///
@@ -6727,7 +8982,16 @@ index c4e0c5b4e..2867f91ad 100644
          to_der,
          ffi::i2d_X509_REQ
      }
-@@ -1740,7 +1740,7 @@ foreign_type_and_impl_send_sync! {
+@@ -1635,7 +1633,7 @@ impl X509RevokedRef {
+ 
+     /// Copies the entry to a new `X509Revoked`.
+     #[corresponds(X509_NAME_dup)]
+-    #[cfg(any(boringssl, ossl110, libressl270, awslc))]
++    #[cfg(any(boringssl, ossl110, libressl, awslc))]
+     pub fn to_owned(&self) -> Result<X509Revoked, ErrorStack> {
+         unsafe { cvt_p(ffi::X509_REVOKED_dup(self.as_ptr())).map(|n| X509Revoked::from_ptr(n)) }
+     }
+@@ -1740,7 +1738,7 @@ foreign_type_and_impl_send_sync! {
  ///
  /// Corresponds to the return value from the [`X509_CRL_get0_by_*`] methods.
  ///
@@ -6736,11 +9000,98 @@ index c4e0c5b4e..2867f91ad 100644
  pub enum CrlStatus<'a> {
      /// The certificate is not present in the list
      NotRevoked,
+@@ -2306,7 +2304,7 @@ impl Stackable for X509Object {
+ }
+ 
+ cfg_if! {
+-    if #[cfg(any(boringssl, ossl110, libressl273, awslc))] {
++    if #[cfg(any(boringssl, ossl110, libressl, awslc))] {
+         use ffi::{X509_getm_notAfter, X509_getm_notBefore, X509_up_ref, X509_get0_signature};
+     } else {
+         #[allow(bad_style)]
+@@ -2347,7 +2345,7 @@ cfg_if! {
+ }
+ 
+ cfg_if! {
+-    if #[cfg(any(boringssl, ossl110, libressl350, awslc))] {
++    if #[cfg(any(boringssl, ossl110, libressl, awslc))] {
+         use ffi::{
+             X509_ALGOR_get0, ASN1_STRING_get0_data, X509_STORE_CTX_get0_chain, X509_set1_notAfter,
+             X509_set1_notBefore, X509_REQ_get_version, X509_REQ_get_subject_name,
+@@ -2387,7 +2385,7 @@ cfg_if! {
+ }
+ 
+ cfg_if! {
+-    if #[cfg(any(ossl110, boringssl, libressl270, awslc))] {
++    if #[cfg(any(ossl110, boringssl, libressl, awslc))] {
+         use ffi::X509_OBJECT_get0_X509;
+     } else {
+         #[allow(bad_style)]
+@@ -2402,7 +2400,7 @@ cfg_if! {
+ }
+ 
+ cfg_if! {
+-    if #[cfg(any(ossl110, libressl350, boringssl, awslc))] {
++    if #[cfg(any(ossl110, libressl, boringssl, awslc))] {
+         use ffi::X509_OBJECT_free;
+     } else {
+         #[allow(bad_style)]
+@@ -2414,7 +2412,7 @@ cfg_if! {
+ }
+ 
+ cfg_if! {
+-    if #[cfg(any(ossl110, libressl350, boringssl, awslc))] {
++    if #[cfg(any(ossl110, libressl, boringssl, awslc))] {
+         use ffi::{
+             X509_CRL_get_issuer, X509_CRL_get0_nextUpdate, X509_CRL_get0_lastUpdate,
+             X509_CRL_get_REVOKED,
+@@ -2502,7 +2500,7 @@ impl X509PurposeRef {
+         unsafe {
+             let sname = CString::new(sname).unwrap();
+             cfg_if! {
+-                if #[cfg(any(ossl110, libressl280, boringssl, awslc))] {
++                if #[cfg(any(ossl110, libressl, boringssl, awslc))] {
+                     let purpose = cvt_n(ffi::X509_PURPOSE_get_by_sname(sname.as_ptr() as *const _))?;
+                 } else {
+                     let purpose = cvt_n(ffi::X509_PURPOSE_get_by_sname(sname.as_ptr() as *mut _))?;
+@@ -2534,7 +2532,7 @@ impl X509PurposeRef {
+     pub fn purpose(&self) -> X509PurposeId {
+         unsafe {
+             cfg_if! {
+-                if #[cfg(any(ossl110, libressl280, boringssl, awslc))] {
++                if #[cfg(any(ossl110, libressl, boringssl, awslc))] {
+                     let x509_purpose = self.as_ptr() as *const ffi::X509_PURPOSE;
+                 } else {
+                     let x509_purpose = self.as_ptr() as *mut ffi::X509_PURPOSE;
 diff --git a/src/x509/store.rs b/src/x509/store.rs
-index ad62ac725..e4663151a 100644
+index ad62ac7..116d7ef 100644
 --- a/src/x509/store.rs
 +++ b/src/x509/store.rs
-@@ -155,7 +155,7 @@ generic_foreign_type_and_impl_send_sync! {
+@@ -52,7 +52,6 @@ use crate::ssl::SslFiletype;
+ use crate::stack::Stack;
+ use crate::stack::StackRef;
+ use crate::util::ForeignTypeRefExt;
+-#[cfg(any(ossl102, boringssl, libressl261, awslc))]
+ use crate::x509::verify::{X509VerifyFlags, X509VerifyParamRef};
+ use crate::x509::{X509Object, X509PurposeId, X509};
+ use crate::{cvt, cvt_p};
+@@ -123,7 +122,6 @@ impl X509StoreBuilderRef {
+ 
+     /// Sets certificate chain validation related flags.
+     #[corresponds(X509_STORE_set_flags)]
+-    #[cfg(any(ossl102, boringssl, libressl261, awslc))]
+     pub fn set_flags(&mut self, flags: X509VerifyFlags) -> Result<(), ErrorStack> {
+         unsafe { cvt(ffi::X509_STORE_set_flags(self.as_ptr(), flags.bits())).map(|_| ()) }
+     }
+@@ -137,7 +135,6 @@ impl X509StoreBuilderRef {
+ 
+     /// Sets certificate chain validation related parameters.
+     #[corresponds[X509_STORE_set1_param]]
+-    #[cfg(any(ossl102, boringssl, libressl261, awslc))]
+     pub fn set_param(&mut self, param: &X509VerifyParamRef) -> Result<(), ErrorStack> {
+         unsafe { cvt(ffi::X509_STORE_set1_param(self.as_ptr(), param.as_ptr())).map(|_| ()) }
+     }
+@@ -155,7 +152,7 @@ generic_foreign_type_and_impl_send_sync! {
  
  /// Marker type corresponding to the [`X509_LOOKUP_hash_dir`] lookup method.
  ///
@@ -6749,7 +9100,7 @@ index ad62ac725..e4663151a 100644
  // FIXME should be an enum
  pub struct HashDir;
  
-@@ -190,7 +190,7 @@ impl X509LookupRef<HashDir> {
+@@ -190,7 +187,7 @@ impl X509LookupRef<HashDir> {
  
  /// Marker type corresponding to the [`X509_LOOKUP_file`] lookup method.
  ///
@@ -6758,11 +9109,134 @@ index ad62ac725..e4663151a 100644
  pub struct File;
  
  impl X509Lookup<File> {
+@@ -284,7 +281,7 @@ impl X509StoreRef {
+ }
+ 
+ cfg_if! {
+-    if #[cfg(any(boringssl, ossl110, libressl270, awslc))] {
++    if #[cfg(any(boringssl, ossl110, libressl, awslc))] {
+         use ffi::X509_STORE_get0_objects;
+     } else {
+         #[allow(bad_style)]
+diff --git a/src/x509/tests.rs b/src/x509/tests.rs
+index e11f8bf..760e676 100644
+--- a/src/x509/tests.rs
++++ b/src/x509/tests.rs
+@@ -16,11 +16,9 @@ use crate::x509::extension::{
+ #[cfg(not(any(boringssl, awslc)))]
+ use crate::x509::store::X509Lookup;
+ use crate::x509::store::X509StoreBuilder;
+-#[cfg(any(ossl102, boringssl, libressl261, awslc))]
+ use crate::x509::verify::{X509VerifyFlags, X509VerifyParam};
+ #[cfg(any(ossl102, boringssl, awslc))]
+ use crate::x509::X509PurposeId;
+-#[cfg(any(ossl102, boringssl, libressl261, awslc))]
+ use crate::x509::X509PurposeRef;
+ #[cfg(ossl110)]
+ use crate::x509::{CrlReason, X509Builder};
+@@ -31,7 +29,6 @@ use crate::x509::{
+ #[cfg(ossl110)]
+ use foreign_types::ForeignType;
+ use hex::{self, FromHex};
+-#[cfg(any(ossl102, boringssl, libressl261, awslc))]
+ use libc::time_t;
+ 
+ use super::{AuthorityInformationAccess, CertificateIssuer, ReasonCode};
+@@ -557,7 +554,6 @@ fn test_verify_fails() {
+ }
+ 
+ #[test]
+-#[cfg(any(ossl102, boringssl, libressl261, awslc))]
+ fn test_verify_fails_with_crl_flag_set_and_no_crl() {
+     let cert = include_bytes!("../../test/cert.pem");
+     let cert = X509::from_pem(cert).unwrap();
+@@ -584,7 +580,6 @@ fn test_verify_fails_with_crl_flag_set_and_no_crl() {
+ }
+ 
+ #[test]
+-#[cfg(any(ossl102, boringssl, libressl261, awslc))]
+ fn test_verify_cert_with_purpose() {
+     let cert = include_bytes!("../../test/cert.pem");
+     let cert = X509::from_pem(cert).unwrap();
+@@ -611,7 +606,6 @@ fn test_verify_cert_with_purpose() {
+ }
+ 
+ #[test]
+-#[cfg(any(ossl102, boringssl, libressl261, awslc))]
+ fn test_verify_cert_with_wrong_purpose_fails() {
+     let cert = include_bytes!("../../test/cert.pem");
+     let cert = X509::from_pem(cert).unwrap();
+@@ -836,7 +830,7 @@ fn test_name_cmp() {
+ }
+ 
+ #[test]
+-#[cfg(any(boringssl, ossl110, libressl270, awslc))]
++#[cfg(any(boringssl, ossl110, libressl, awslc))]
+ fn test_name_to_owned() {
+     let cert = include_bytes!("../../test/cert.pem");
+     let cert = X509::from_pem(cert).unwrap();
+@@ -846,7 +840,6 @@ fn test_name_to_owned() {
+ }
+ 
+ #[test]
+-#[cfg(any(ossl102, boringssl, libressl261, awslc))]
+ fn test_verify_param_set_time_fails_verification() {
+     const TEST_T_2030: time_t = 1893456000;
+ 
+@@ -877,7 +870,6 @@ fn test_verify_param_set_time_fails_verification() {
+ }
+ 
+ #[test]
+-#[cfg(any(ossl102, boringssl, libressl261, awslc))]
+ fn test_verify_param_set_time() {
+     const TEST_T_2020: time_t = 1577836800;
+ 
+@@ -901,7 +893,6 @@ fn test_verify_param_set_time() {
+ }
+ 
+ #[test]
+-#[cfg(any(ossl102, boringssl, libressl261, awslc))]
+ fn test_verify_param_set_depth() {
+     let cert = include_bytes!("../../test/leaf.pem");
+     let cert = X509::from_pem(cert).unwrap();
+@@ -928,7 +919,6 @@ fn test_verify_param_set_depth() {
+ }
+ 
+ #[test]
+-#[cfg(any(ossl102, boringssl, libressl261, awslc))]
+ #[allow(clippy::bool_to_int_with_if)]
+ fn test_verify_param_set_depth_fails_verification() {
+     let cert = include_bytes!("../../test/leaf.pem");
+@@ -954,7 +944,7 @@ fn test_verify_param_set_depth_fails_verification() {
+     let store = store_bldr.build();
+ 
+     // OpenSSL 1.1.0+ added support for X509_V_ERR_CERT_CHAIN_TOO_LONG, while 1.0.2 simply ignores the intermediate
+-    let expected_error = if cfg!(any(ossl110, libressl261)) {
++    let expected_error = if cfg!(any(ossl110, libressl)) {
+         "certificate chain too long"
+     } else {
+         "unable to get local issuer certificate"
+@@ -1067,7 +1057,6 @@ fn test_set_purpose_fails_verification() {
+ }
+ 
+ #[test]
+-#[cfg(any(ossl101, libressl350))]
+ fn test_add_name_entry() {
+     let cert = include_bytes!("../../test/cert.pem");
+     let cert = X509::from_pem(cert).unwrap();
 diff --git a/src/x509/verify.rs b/src/x509/verify.rs
-index b719c6955..e43a8dfbc 100644
+index b719c69..2789db3 100644
 --- a/src/x509/verify.rs
 +++ b/src/x509/verify.rs
-@@ -33,6 +33,8 @@ bitflags! {
+@@ -4,7 +4,6 @@ use libc::{c_int, c_uint, c_ulong, time_t};
+ use std::net::IpAddr;
+ 
+ use crate::error::ErrorStack;
+-#[cfg(any(ossl102, boringssl, awslc))]
+ use crate::x509::X509PurposeId;
+ use crate::{cvt, cvt_p};
+ use openssl_macros::corresponds;
+@@ -33,6 +32,8 @@ bitflags! {
      #[derive(Copy, Clone, Debug, Eq, Hash, Ord, PartialEq, PartialOrd)]
      #[repr(transparent)]
      pub struct X509VerifyFlags: c_ulong {
@@ -6771,45 +9245,52 @@ index b719c6955..e43a8dfbc 100644
          const CB_ISSUER_CHECK = ffi::X509_V_FLAG_CB_ISSUER_CHECK as _;
          const USE_CHECK_TIME = ffi::X509_V_FLAG_USE_CHECK_TIME as _;
          const CRL_CHECK = ffi::X509_V_FLAG_CRL_CHECK as _;
-@@ -48,7 +50,7 @@ bitflags! {
+@@ -48,7 +49,6 @@ bitflags! {
          const EXTENDED_CRL_SUPPORT = ffi::X509_V_FLAG_EXTENDED_CRL_SUPPORT as _;
          const USE_DELTAS = ffi::X509_V_FLAG_USE_DELTAS as _;
          const CHECK_SS_SIGNATURE = ffi::X509_V_FLAG_CHECK_SS_SIGNATURE as _;
 -        #[cfg(any(ossl102, boringssl, awslc))]
-+        #[cfg(any(ossl102, boringssl, awslc, libressl251))]
          const TRUSTED_FIRST = ffi::X509_V_FLAG_TRUSTED_FIRST as _;
          #[cfg(ossl102)]
          const SUITEB_128_LOS_ONLY = ffi::X509_V_FLAG_SUITEB_128_LOS_ONLY;
-@@ -56,11 +58,11 @@ bitflags! {
+@@ -56,11 +56,10 @@ bitflags! {
          const SUITEB_192_LOS = ffi::X509_V_FLAG_SUITEB_128_LOS;
          #[cfg(ossl102)]
          const SUITEB_128_LOS = ffi::X509_V_FLAG_SUITEB_192_LOS;
 -        #[cfg(any(ossl102, boringssl, awslc))]
-+        #[cfg(any(ossl102, boringssl, awslc, libressl251))]
          const PARTIAL_CHAIN = ffi::X509_V_FLAG_PARTIAL_CHAIN as _;
 -        #[cfg(any(ossl110, boringssl, awslc))]
-+        #[cfg(any(ossl110, boringssl, awslc, libressl251))]
++        #[cfg(any(ossl110, boringssl, awslc, libressl))]
          const NO_ALT_CHAINS = ffi::X509_V_FLAG_NO_ALT_CHAINS as _;
 -        #[cfg(any(ossl110, boringssl, awslc))]
-+        #[cfg(any(ossl110, boringssl, awslc, libressl251))]
++        #[cfg(any(ossl110, boringssl, awslc, libressl))]
          const NO_CHECK_TIME = ffi::X509_V_FLAG_NO_CHECK_TIME as _;
      }
  }
-diff --git a/test/dhparams.der b/test/dhparams.der
-new file mode 100644
-index 000000000..bf0cd0cb4
-Binary files /dev/null and b/test/dhparams.der differ
-diff --git a/test/dsa.pub.der b/test/dsa.pub.der
-new file mode 100644
-index 000000000..155ef8406
-Binary files /dev/null and b/test/dsa.pub.der differ
+@@ -180,7 +179,7 @@ impl X509VerifyParamRef {
+         }
+     }
+ 
+-    /// Set the verification time, where time is of type time_t, traditionaly defined as seconds since the epoch
++    /// Set the verification time, where time is of type time_t, traditionally defined as seconds since the epoch
+     #[corresponds(X509_VERIFY_PARAM_set_time)]
+     pub fn set_time(&mut self, time: time_t) {
+         unsafe { ffi::X509_VERIFY_PARAM_set_time(self.as_ptr(), time) }
+@@ -208,7 +207,6 @@ impl X509VerifyParamRef {
+ 
+     /// Sets the verification purpose
+     #[corresponds(X509_VERIFY_PARAM_set_purpose)]
+-    #[cfg(any(ossl102, boringssl, awslc))]
+     pub fn set_purpose(&mut self, purpose: X509PurposeId) -> Result<(), ErrorStack> {
+         unsafe { cvt(ffi::X509_VERIFY_PARAM_set_purpose(self.as_ptr(), purpose.0)).map(|_| ()) }
+     }
 diff --git a/test/dsa.pem.pub b/test/dsa.pub.pem
 similarity index 100%
 rename from test/dsa.pem.pub
 rename to test/dsa.pub.pem
 diff --git a/test/ec-encrypted.pem b/test/ec-encrypted.pem
 new file mode 100644
-index 000000000..09fb1c456
+index 0000000..09fb1c4
 --- /dev/null
 +++ b/test/ec-encrypted.pem
 @@ -0,0 +1,8 @@
@@ -6821,13 +9302,9 @@ index 000000000..09fb1c456
 +r89nGbVqndEIUauZj9/b3z+vaGDisp5cIvqizoQdHwlg7ymDcCdA16kNIu57avV4
 +wXqC9DbpPeXbv++J4u7oYpjBiOKeysxwecKrJt1PVIo=
 +-----END EC PRIVATE KEY-----
-diff --git a/test/ec.der b/test/ec.der
-new file mode 100644
-index 000000000..d81691326
-Binary files /dev/null and b/test/ec.der differ
 diff --git a/test/ec.pem b/test/ec.pem
 new file mode 100644
-index 000000000..9328c454d
+index 0000000..9328c45
 --- /dev/null
 +++ b/test/ec.pem
 @@ -0,0 +1,5 @@
@@ -6836,13 +9313,9 @@ index 000000000..9328c454d
 +DM3trxVKP1zRfemMfsmaAlR29QChRANCAATObF661wl1ITDTDX3Q7ZCe+Zd6KOwB
 +7mJeZu9/6gOIosLO8QDwVOQSXKXvaeE+cZq9Hi8J3XccSe3uQl0JZ1sb
 +-----END PRIVATE KEY-----
-diff --git a/test/ec.pub.der b/test/ec.pub.der
-new file mode 100644
-index 000000000..acc2b435f
-Binary files /dev/null and b/test/ec.pub.der differ
 diff --git a/test/ec.pub.pem b/test/ec.pub.pem
 new file mode 100644
-index 000000000..96c4fa509
+index 0000000..96c4fa5
 --- /dev/null
 +++ b/test/ec.pub.pem
 @@ -0,0 +1,4 @@
@@ -6852,7 +9325,7 @@ index 000000000..96c4fa509
 +-----END PUBLIC KEY-----
 diff --git a/test/ec.trad.pem b/test/ec.trad.pem
 new file mode 100644
-index 000000000..2c85c779e
+index 0000000..2c85c77
 --- /dev/null
 +++ b/test/ec.trad.pem
 @@ -0,0 +1,5 @@
@@ -6861,16 +9334,8 @@ index 000000000..2c85c779e
 +AwEHoUQDQgAEzmxeutcJdSEw0w190O2QnvmXeijsAe5iXmbvf+oDiKLCzvEA8FTk
 +Elyl72nhPnGavR4vCd13HEnt7kJdCWdbGw==
 +-----END EC PRIVATE KEY-----
-diff --git a/test/pkcs1.der.pub b/test/pkcs1.der.pub
-new file mode 100644
-index 000000000..0e54c50f4
-Binary files /dev/null and b/test/pkcs1.der.pub differ
-diff --git a/test/rsa.der b/test/rsa.der
-new file mode 100644
-index 000000000..500c05faf
-Binary files /dev/null and b/test/rsa.der differ
 diff --git a/test/rsa.pem b/test/rsa.pem
-index d8185fed6..7c0f6fd1e 100644
+index d8185fe..7c0f6fd 100644
 --- a/test/rsa.pem
 +++ b/test/rsa.pem
 @@ -1,27 +1,28 @@
@@ -6929,13 +9394,9 @@ index d8185fed6..7c0f6fd1e 100644
 +ydy5cY7YIBi87w93IKLEdfnbJtoOPLUW0ITrJReOgo1cq9SbsxYawBgfp/gh6A56
 +03k2+ZQwVK0JKSHuLFkuQ3U=
 +-----END PRIVATE KEY-----
-diff --git a/test/rsa.pkcs1.der b/test/rsa.pkcs1.der
-new file mode 100644
-index 000000000..500c05faf
-Binary files /dev/null and b/test/rsa.pkcs1.der differ
 diff --git a/test/rsa.pkcs1.pem b/test/rsa.pkcs1.pem
 new file mode 100644
-index 000000000..d8185fed6
+index 0000000..d8185fe
 --- /dev/null
 +++ b/test/rsa.pkcs1.pem
 @@ -0,0 +1,27 @@
@@ -6966,21 +9427,13 @@ index 000000000..d8185fed6
 +NqMtuhdBJqUnBi6tjKMF+34Xf0CUN8ncuXGO2CAYvO8PdyCixHX52ybaDjy1FtCE
 +6yUXjoKNXKvUm7MWGsAYH6f4IegOetN5NvmUMFStCSkh7ixZLkN1
 +-----END RSA PRIVATE KEY-----
-diff --git a/test/rsa.pub.der b/test/rsa.pub.der
-new file mode 100644
-index 000000000..242d20b48
-Binary files /dev/null and b/test/rsa.pub.der differ
 diff --git a/test/rsa.pem.pub b/test/rsa.pub.pem
 similarity index 100%
 rename from test/rsa.pem.pub
 rename to test/rsa.pub.pem
-diff --git a/test/rsa.pub.pkcs1.der b/test/rsa.pub.pkcs1.der
-new file mode 100644
-index 000000000..e8026cdaa
-Binary files /dev/null and b/test/rsa.pub.pkcs1.der differ
 diff --git a/test/rsa.pub.pkcs1.pem b/test/rsa.pub.pkcs1.pem
 new file mode 100644
-index 000000000..864ee0c53
+index 0000000..864ee0c
 --- /dev/null
 +++ b/test/rsa.pub.pkcs1.pem
 @@ -0,0 +1,8 @@
