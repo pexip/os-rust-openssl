@@ -1,3 +1,9 @@
+rust-openssl (0.10.72-1+pexip25u3) pexip-trixie; urgency=medium
+
+  * Trixie build for product distribution
+
+ -- Mark Hymers <mark.hymers@pexip.com>  Thu, 04 Dec 2025 13:59:07 +0000
+
 rust-openssl (0.10.72-1+pexip25u2) pexip-trixie; urgency=medium
 
   * d/p/ossl300: fix DH/DHX key handling
