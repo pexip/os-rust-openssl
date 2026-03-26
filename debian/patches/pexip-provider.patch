@@ -1,0 +1,142 @@
+Add more provider functionality
+--- a/src/hash.rs
++++ b/src/hash.rs
+@@ -40,8 +40,10 @@ use std::ptr;
+ 
+ use crate::error::ErrorStack;
+ use crate::nid::Nid;
+-use crate::{cvt, cvt_p};
++use crate::{cvt, cvt_p, cvt_p_const};
+ use openssl_macros::corresponds;
++use crate::provider::ProviderRef;
++use crate::util::ForeignTypeRefExt;
+ 
+ cfg_if! {
+     if #[cfg(any(ossl110, boringssl, libressl382, awslc))] {
+@@ -199,6 +201,12 @@ impl MessageDigest {
+         let name = cvt_p_const(unsafe {ffi::EVP_MD_get0_name(self.0) })?;
+         Ok(unsafe { CStr::from_ptr(name) }.to_str().unwrap().to_string())
+     }
++
++    pub fn provider(&self) -> Result<&ProviderRef, ErrorStack> {
++        let provider = cvt_p_const(unsafe{ffi::EVP_MD_get0_provider(self.0)})?;
++        Ok(unsafe{ProviderRef::from_const_ptr(provider)})
++    }
++
+ }
+ 
+ unsafe impl Sync for MessageDigest {}
+@@ -918,4 +926,10 @@ mod tests {
+             "SHA2-256"
+         )
+     }
++
++    #[test]
++    fn md_provider() {
++        let md = MessageDigest::from_name("sha256").unwrap();
++        md.provider().unwrap();
++    }
+ }
+diff --git a/src/provider.rs b/src/provider.rs
+index 01b5820af..a19a9354f 100644
+--- a/src/provider.rs
++++ b/src/provider.rs
+@@ -2,10 +2,17 @@ use crate::error::ErrorStack;
+ use crate::lib_ctx::LibCtxRef;
+ use crate::{cvt, cvt_p};
+ use foreign_types::{ForeignType, ForeignTypeRef};
++use libc::c_char;
+ use openssl_macros::corresponds;
+-use std::ffi::CString;
++use std::collections::HashMap;
++use std::ffi::{CStr, CString};
+ use std::ptr;
+ 
++cstr_const!(pub(crate) OSSL_PROV_PARAM_NAME, b"name\0");
++cstr_const!(pub(crate) OSSL_PROV_PARAM_VERSION, b"version\0");
++cstr_const!(pub(crate) OSSL_PROV_PARAM_BUILDINFO, b"buildinfo\0");
++cstr_const!(pub(crate) OSSL_PROV_PARAM_STATUS, b"status\0");
++
+ foreign_type_and_impl_send_sync! {
+     type CType = ffi::OSSL_PROVIDER;
+     fn drop = ossl_provider_free;
+@@ -79,3 +86,79 @@ impl Provider {
+         }
+     }
+ }
++
++impl ProviderRef {
++    fn get_params<'a>(&self, params: &[&'a CStr]) -> Result<HashMap<&'a CStr, String>, ErrorStack> {
++        let mut values: Vec<*mut c_char> = params.iter().map(|_| ptr::null_mut()).collect();
++
++        let mut param_array: Vec<ffi::OSSL_PARAM> = Vec::with_capacity(params.len() + 1);
++        for (value, &param) in values.iter_mut().zip(params) {
++            param_array.push(unsafe {
++                ffi::OSSL_PARAM_construct_utf8_ptr(param.as_ptr(), value,0)
++            });
++        }
++        param_array.push(unsafe { ffi::OSSL_PARAM_construct_end() });
++
++        cvt(unsafe { ffi::OSSL_PROVIDER_get_params(self.as_ptr(), param_array.as_mut_ptr()) })?;
++
++        Ok(params
++            .iter()
++            .zip(values)
++            .map(|(&param, value)| {
++                (
++                    param,
++                    unsafe { CStr::from_ptr(value) }
++                        .to_str()
++                        .unwrap()
++                        .to_string(),
++                )
++            })
++            .collect::<HashMap<_, _>>())
++    }
++
++    pub fn name(&self) -> Result<String, ErrorStack> {
++        let param = OSSL_PROV_PARAM_NAME;
++        Ok(self.get_params(&[param])?.remove(param).unwrap())
++    }
++
++    pub fn buildinfo(&self) -> Result<String, ErrorStack> {
++        let param = OSSL_PROV_PARAM_BUILDINFO;
++        Ok(self.get_params(&[param])?.remove(param).unwrap())
++    }
++
++    pub fn version_string(&self) -> Result<String, ErrorStack> {
++        let param = OSSL_PROV_PARAM_VERSION;
++        Ok(self.get_params(&[param])?.remove(param).unwrap())
++    }
++
++    pub fn version(&self) -> Result<(u8, u8, u8), ErrorStack> {
++        let version: Vec<_> = self.version_string()?.split(".").map(|p| p.parse::<_>().unwrap()).collect();
++        Ok((version[0], version[1], version[2]))
++    }
++}
++
++#[cfg(test)]
++mod tests {
++    use super::*;
++
++    #[test]
++    fn test_name() {
++        let provider = Provider::load(None, "default").unwrap();
++        let name = provider.name().unwrap();
++        assert_eq!(name, "OpenSSL Default Provider");
++    }
++
++    #[test]
++    fn test_version() {
++        let provider = Provider::load(None, "default").unwrap();
++        let version = provider.version().unwrap();
++        assert_eq!(version.0, 3);
++        assert!(version >= (3, 0, 0));
++    }
++
++    #[test]
++    fn test_build_info() {
++        let provider = Provider::load(None, "default").unwrap();
++        provider.buildinfo().unwrap();
++    }
++}
