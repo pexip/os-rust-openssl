@@ -1,0 +1,36 @@
+Implement to_owned for CipherRef
+diff --git a/src/cipher.rs b/src/cipher.rs
+index 6c6d271ea..1cae10ce1 100644
+--- a/src/cipher.rs
++++ b/src/cipher.rs
+@@ -115,6 +115,12 @@ pub struct Cipher(Inner);
+ unsafe impl Sync for Cipher {}
+ unsafe impl Send for Cipher {}
+ 
++impl std::borrow::Borrow<CipherRef> for Cipher {
++    fn borrow(&self) -> &CipherRef {
++        &self
++    }
++}
++
+ impl Cipher {
+     /// Looks up the cipher for a certain nid.
+     #[corresponds(EVP_get_cipherbynid)]
+@@ -563,6 +569,17 @@ impl ForeignTypeRef for CipherRef {
+ unsafe impl Sync for CipherRef {}
+ unsafe impl Send for CipherRef {}
+ 
++impl ToOwned for CipherRef {
++    type Owned = Cipher;
++
++    fn to_owned(&self) -> Cipher {
++        unsafe {
++            ffi::EVP_CIPHER_up_ref(self.as_ptr());
++            Cipher::from_ptr(self.as_ptr())
++        }
++    }
++}
++
+ impl CipherRef {
+     /// Returns the cipher's Nid.
+     #[corresponds(EVP_CIPHER_nid)]
