@@ -2,3 +2,4 @@ disable-vendor.patch
 disable-bssl.patch
 disable-aws-lc.patch
 pexip-ossl300-non-deprecated.patch
+pexip-md.patch

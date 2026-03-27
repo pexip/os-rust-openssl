@@ -1,0 +1,63 @@
+MD: add fetch and name
+diff --git a/openssl/src/hash.rs b/openssl/src/hash.rs
+index fac3443a8..4cd4d335c 100644
+--- a/src/hash.rs
++++ b/src/hash.rs
+@@ -31,7 +31,7 @@
+ //! # Ok(()) }
+ //! ```
+ use cfg_if::cfg_if;
+-use std::ffi::CString;
++use std::ffi::{CStr, CString};
+ use std::fmt;
+ use std::io;
+ use std::io::prelude::*;
+@@ -94,6 +94,15 @@ impl MessageDigest {
+         }
+     }
+ 
++    /// Returns the `MessageDigest` corresponding to an algorithm name.
++    #[corresponds(EVP_MD_fetch)]
++    pub fn fetch(name: &str) -> Result<MessageDigest, ErrorStack> {
++        ffi::init();
++        let name = CString::new(name).unwrap();
++        let ptr = cvt_p(unsafe{ffi::EVP_MD_fetch(ptr::null_mut(), name.as_ptr(), ptr::null())})?;
++        Ok(MessageDigest(ptr))
++    }
++
+     #[cfg(not(boringssl))]
+     pub fn null() -> MessageDigest {
+         unsafe { MessageDigest(ffi::EVP_md_null()) }
+@@ -185,6 +194,11 @@ impl MessageDigest {
+     pub fn type_(&self) -> Nid {
+         Nid::from_raw(unsafe { ffi::EVP_MD_type(self.0) })
+     }
++
++    pub fn name(&self) -> Result<String, ErrorStack> {
++        let name = cvt_p_const(unsafe {ffi::EVP_MD_get0_name(self.0) })?;
++        Ok(unsafe { CStr::from_ptr(name) }.to_str().unwrap().to_string())
++    }
+ }
+ 
+ unsafe impl Sync for MessageDigest {}
+@@ -888,4 +902,20 @@ mod tests {
+             MessageDigest::sha256().as_ptr()
+         )
+     }
++
++    #[test]
++    fn fetch() {
++        assert_eq!(
++            MessageDigest::fetch("SHA256").unwrap().type_(),
++            MessageDigest::sha256().type_(),
++        )
++    }
++
++    #[test]
++    fn name() {
++        assert_eq!(
++            MessageDigest::from_name("SHA256").unwrap().name().unwrap(),
++            "SHA2-256"
++        )
++    }
+ }
