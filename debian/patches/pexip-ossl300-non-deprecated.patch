@@ -845,7 +845,7 @@ index 92ea044..780927b 100644
 +            let pkey: PKey<Private> = pkey_from_params(self.0.id(), &params)?;
 +            // In lieu of a non-deprecated way to recompute the public key, bounce through PKCS8 as
 +            // this causes the public key to be re-computed.
-+            // See: https://github.com/issues/21315#issuecomment-1618314607
++            // See: https://github.com/openssl/openssl/issues/21315#issuecomment-1618314607
 +            let pkcs8 = cvt_p(unsafe { ffi::EVP_PKEY2PKCS8(pkey.as_ptr()) })?;
 +            let pkey_ptr = cvt_p(unsafe { ffi::EVP_PKCS82PKEY(pkcs8) })?;
 +            unsafe { ffi::PKCS8_PRIV_KEY_INFO_free(pkcs8) };
@@ -982,13 +982,14 @@ index 92ea044..780927b 100644
          unsafe {
              ffi::init();
              cvt_p(ffi::DH_get_2048_256()).map(|p| Dh::from_ptr(p))
-@@ -189,20 +341,35 @@ where
+@@ -189,36 +341,57 @@ where
      T: HasParams,
  {
      /// Returns the prime `p` from the DH instance.
 -    #[corresponds(DH_get0_pqg)]
-     pub fn prime_p(&self) -> &BigNumRef {
+-    pub fn prime_p(&self) -> &BigNumRef {
 -        let mut p = ptr::null();
++    pub fn prime_p(&self) -> BigNum {
 +        #[cfg(ossl300)]
 +        return self.0.get_bn_param(OSSL_PKEY_PARAM_FFC_P).unwrap();
 +
@@ -996,14 +997,17 @@ index 92ea044..780927b 100644
          unsafe {
 +            let mut p = ptr::null();
              DH_get0_pqg(self.as_ptr(), &mut p, ptr::null_mut(), ptr::null_mut());
-             BigNumRef::from_ptr(p as *mut _)
+-            BigNumRef::from_ptr(p as *mut _)
++            p = ffi::BN_dup(p);
++            BigNum::from_ptr(p as *mut _)
          }
      }
  
      /// Returns the prime `q` from the DH instance.
 -    #[corresponds(DH_get0_pqg)]
-     pub fn prime_q(&self) -> Option<&BigNumRef> {
+-    pub fn prime_q(&self) -> Option<&BigNumRef> {
 -        let mut q = ptr::null();
++    pub fn prime_q(&self) -> Option<BigNum> {
 +        #[cfg(ossl300)]
 +        return {
 +            // EVP_KEY_fromdata will fill in Q for known parameter groups even if it wasn't set
@@ -1022,13 +1026,19 @@ index 92ea044..780927b 100644
              DH_get0_pqg(self.as_ptr(), ptr::null_mut(), &mut q, ptr::null_mut());
              if q.is_null() {
                  None
-@@ -213,10 +371,13 @@ where
+             } else {
+-                Some(BigNumRef::from_ptr(q as *mut _))
++                q = ffi::BN_dup(q);
++                Some(BigNum::from_ptr(q as *mut _))
+             }
+         }
      }
  
      /// Returns the generator from the DH instance.
 -    #[corresponds(DH_get0_pqg)]
-     pub fn generator(&self) -> &BigNumRef {
+-    pub fn generator(&self) -> &BigNumRef {
 -        let mut g = ptr::null();
++    pub fn generator(&self) -> BigNum {
 +        #[cfg(ossl300)]
 +        return self.0.get_bn_param(OSSL_PKEY_PARAM_FFC_G).unwrap();
 +
@@ -1036,15 +1046,20 @@ index 92ea044..780927b 100644
          unsafe {
 +            let mut g = ptr::null();
              DH_get0_pqg(self.as_ptr(), ptr::null_mut(), ptr::null_mut(), &mut g);
-             BigNumRef::from_ptr(g as *mut _)
+-            BigNumRef::from_ptr(g as *mut _)
++            g = ffi::BN_dup(g);
++            BigNum::from_ptr(g as *mut _)
          }
-@@ -228,16 +389,21 @@ where
+     }
+ }
+@@ -228,16 +401,22 @@ where
      T: HasPublic,
  {
      /// Returns the public key from the DH instance.
 -    #[corresponds(DH_get0_key)]
-     pub fn public_key(&self) -> &BigNumRef {
+-    pub fn public_key(&self) -> &BigNumRef {
 -        let mut pub_key = ptr::null();
++    pub fn public_key(&self) -> BigNum {
 +        #[cfg(ossl300)]
 +        return self.0.get_bn_param(OSSL_PKEY_PARAM_PUB_KEY).unwrap();
 +
@@ -1052,7 +1067,9 @@ index 92ea044..780927b 100644
          unsafe {
 +            let mut pub_key = ptr::null();
              DH_get0_key(self.as_ptr(), &mut pub_key, ptr::null_mut());
-             BigNumRef::from_ptr(pub_key as *mut _)
+-            BigNumRef::from_ptr(pub_key as *mut _)
++            pub_key = ffi::BN_dup(pub_key);
++            BigNum::from_ptr(pub_key as *mut _)
          }
      }
  }
@@ -1062,7 +1079,7 @@ index 92ea044..780927b 100644
  impl<T> DhRef<T>
  where
      T: HasPrivate,
-@@ -245,6 +411,29 @@ where
+@@ -245,6 +424,31 @@ where
      /// Computes a shared secret from the own private key and the given `public_key`.
      #[corresponds(DH_compute_key)]
      pub fn compute_key(&self, public_key: &BigNumRef) -> Result<Vec<u8>, ErrorStack> {
@@ -1072,9 +1089,11 @@ index 92ea044..780927b 100644
 +            let dh_self = self.to_owned();
 +
 +            // construct a new pkey that shares the params and has the peer's public key
++            let p = dh_self.prime_p();
++            let g = dh_self.generator();
 +            let mut builder = OsslParamBuilder::new()?;
-+            builder.add_bn(OSSL_PKEY_PARAM_FFC_P, dh_self.prime_p())?;
-+            builder.add_bn(OSSL_PKEY_PARAM_FFC_G, dh_self.generator())?;
++            builder.add_bn(OSSL_PKEY_PARAM_FFC_P, &p)?;
++            builder.add_bn(OSSL_PKEY_PARAM_FFC_G, &g)?;
 +            builder.add_bn(OSSL_PKEY_PARAM_PUB_KEY, public_key)?;
 +            let params = builder.to_param()?;
 +            let peer_key: PKey<Public> = pkey_from_params(self.0.id(), &params)?;
@@ -1092,13 +1111,14 @@ index 92ea044..780927b 100644
          unsafe {
              let key_len = ffi::DH_size(self.as_ptr());
              let mut key = vec![0u8; key_len as usize];
-@@ -258,18 +447,24 @@ where
+@@ -258,18 +462,25 @@ where
      }
  
      /// Returns the private key from the DH instance.
 -    #[corresponds(DH_get0_key)]
-     pub fn private_key(&self) -> &BigNumRef {
+-    pub fn private_key(&self) -> &BigNumRef {
 -        let mut priv_key = ptr::null();
++    pub fn private_key(&self) -> BigNum {
 +        #[cfg(ossl300)]
 +        return self.0.get_bn_param(OSSL_PKEY_PARAM_PRIV_KEY).unwrap();
 +
@@ -1106,7 +1126,9 @@ index 92ea044..780927b 100644
          unsafe {
 +            let mut priv_key = ptr::null();
              DH_get0_key(self.as_ptr(), ptr::null_mut(), &mut priv_key);
-             BigNumRef::from_ptr(priv_key as *mut _)
+-            BigNumRef::from_ptr(priv_key as *mut _)
++            priv_key = ffi::BN_dup(priv_key);
++            BigNum::from_ptr(priv_key as *mut _)
          }
      }
  }
@@ -1120,7 +1142,7 @@ index 92ea044..780927b 100644
          use ffi::{DH_set0_pqg, DH_get0_pqg, DH_get0_key, DH_set0_key};
      } else {
          #[allow(bad_style)]
-@@ -371,12 +566,8 @@ mod tests {
+@@ -371,17 +582,13 @@ mod tests {
              "8CF83642A709A097B447997640129DA299B1A47D1EB3750BA308B0FE64F5FBD3",
          )
          .unwrap();
@@ -1134,8 +1156,82 @@ index 92ea044..780927b 100644
 +            Dh::from_params(prime_p.to_owned(), generator.to_owned(), prime_q.to_owned()).unwrap();
          ctx.set_tmp_dh(&dh).unwrap();
  
-         assert_eq!(dh.prime_p(), &prime_p);
-@@ -494,6 +692,27 @@ mod tests {
+-        assert_eq!(dh.prime_p(), &prime_p);
+-        assert_eq!(dh.prime_q().unwrap(), &prime_q);
+-        assert_eq!(dh.generator(), &generator);
++        assert_eq!(dh.prime_p(), prime_p);
++        assert_eq!(dh.prime_q().unwrap(), prime_q);
++        assert_eq!(dh.generator(), generator);
+     }
+ 
+     #[test]
+@@ -408,9 +615,7 @@ mod tests {
+         let key1 = dh1.generate_key().unwrap();
+ 
+         let dh2 = Dh::get_2048_256().unwrap();
+-        let key2 = dh2
+-            .set_private_key(key1.private_key().to_owned().unwrap())
+-            .unwrap();
++        let key2 = dh2.set_private_key(key1.private_key()).unwrap();
+ 
+         assert_eq!(key1.public_key(), key2.public_key());
+         assert_eq!(key1.private_key(), key2.private_key());
+@@ -423,19 +628,12 @@ mod tests {
+         let key1 = dh1.generate_key().unwrap();
+ 
+         let dh2 = Dh::get_2048_256().unwrap();
+-        let key2 = dh2
+-            .set_public_key(key1.public_key().to_owned().unwrap())
+-            .unwrap();
++        let key2 = dh2.set_public_key(key1.public_key()).unwrap();
+ 
+         assert_eq!(key1.public_key(), key2.public_key());
+ 
+         let dh3 = Dh::get_2048_256().unwrap();
+-        let key3 = dh3
+-            .set_key(
+-                key1.public_key().to_owned().unwrap(),
+-                key1.private_key().to_owned().unwrap(),
+-            )
+-            .unwrap();
++        let key3 = dh3.set_key(key1.public_key(), key1.private_key()).unwrap();
+         assert_eq!(key1.public_key(), key3.public_key());
+         assert_eq!(key1.private_key(), key3.private_key());
+     }
+@@ -462,8 +660,8 @@ mod tests {
+         let dh1 = Dh::get_2048_224().unwrap().generate_key().unwrap();
+         let dh2 = Dh::get_2048_224().unwrap().generate_key().unwrap();
+ 
+-        let shared_a = dh1.compute_key(dh2.public_key()).unwrap();
+-        let shared_b = dh2.compute_key(dh1.public_key()).unwrap();
++        let shared_a = dh1.compute_key(&dh2.public_key()).unwrap();
++        let shared_b = dh2.compute_key(&dh1.public_key()).unwrap();
+ 
+         assert_eq!(shared_a, shared_b);
+     }
+@@ -471,18 +669,13 @@ mod tests {
+     #[test]
+     fn test_dh_generate_params_generate_key_compute_key() {
+         let dh_params1 = Dh::generate_params(512, 2).unwrap();
+-        let dh_params2 = Dh::from_pqg(
+-            dh_params1.prime_p().to_owned().unwrap(),
+-            None,
+-            dh_params1.generator().to_owned().unwrap(),
+-        )
+-        .unwrap();
++        let dh_params2 = Dh::from_pqg(dh_params1.prime_p(), None, dh_params1.generator()).unwrap();
+ 
+         let dh1 = dh_params1.generate_key().unwrap();
+         let dh2 = dh_params2.generate_key().unwrap();
+ 
+-        let shared_a = dh1.compute_key(dh2.public_key()).unwrap();
+-        let shared_b = dh2.compute_key(dh1.public_key()).unwrap();
++        let shared_a = dh1.compute_key(&dh2.public_key()).unwrap();
++        let shared_b = dh2.compute_key(&dh1.public_key()).unwrap();
+ 
+         assert_eq!(shared_a, shared_b);
+     }
+@@ -494,6 +687,23 @@ mod tests {
          let g = BigNum::from_hex_str("02").unwrap();
          let dh2 = Dh::from_pqg(p, None, g).unwrap();
          assert!(dh1.check_key().unwrap());
@@ -1152,12 +1248,8 @@ index 92ea044..780927b 100644
 +        let g = BigNum::from_u32(2).unwrap();
 +
 +        let params1 = Dh::from_pqg(p, None, g).unwrap();
-+        let params2 = Dh::from_pqg(
-+            params1.prime_p().to_owned().unwrap(),
-+            params1.prime_q().map(|q| q.to_owned().unwrap()),
-+            params1.generator().to_owned().unwrap(),
-+        )
-+        .unwrap();
++        let params2 =
++            Dh::from_pqg(params1.prime_p(), params1.prime_q(), params1.generator()).unwrap();
 +        assert_eq!(
 +            PKey::from_dh(params1).unwrap().id(),
 +            PKey::from_dh(params2).unwrap().id()
@@ -1234,7 +1326,7 @@ index cceda21..6b4e9b7 100644
  impl<T> ToOwned for DsaRef<T> {
      type Owned = Dsa<T>;
  
-@@ -87,21 +109,29 @@ where
+@@ -87,25 +109,34 @@ where
          /// Serializes the public key into a PEM-encoded SubjectPublicKeyInfo structure.
          ///
          /// The output will have a header of `-----BEGIN PUBLIC KEY-----`.
@@ -1258,8 +1350,9 @@ index cceda21..6b4e9b7 100644
  
      /// Returns a reference to the public key component of `self`.
 -    #[corresponds(DSA_get0_key)]
+-    pub fn pub_key(&self) -> &BigNumRef {
 +    #[cfg_attr(not(ossl300), corresponds(DSA_get0_key))]
-     pub fn pub_key(&self) -> &BigNumRef {
++    pub fn pub_key(&self) -> BigNum {
 +        #[cfg(ossl300)]
 +        return self.0.get_bn_param(OSSL_PKEY_PARAM_PUB_KEY).unwrap();
 +
@@ -1267,7 +1360,13 @@ index cceda21..6b4e9b7 100644
          unsafe {
              let mut pub_key = ptr::null();
              DSA_get0_key(self.as_ptr(), &mut pub_key, ptr::null_mut());
-@@ -118,26 +148,34 @@ where
+-            BigNumRef::from_const_ptr(pub_key)
++            pub_key = ffi::BN_dup(pub_key);
++            BigNum::from_const_ptr(pub_key)
+         }
+     }
+ }
+@@ -118,30 +149,39 @@ where
          /// Serializes the private key to a PEM-encoded DSAPrivateKey structure.
          ///
          /// The output will have a header of `-----BEGIN DSA PRIVATE KEY-----`.
@@ -1297,8 +1396,9 @@ index cceda21..6b4e9b7 100644
  
      /// Returns a reference to the private key component of `self`.
 -    #[corresponds(DSA_get0_key)]
+-    pub fn priv_key(&self) -> &BigNumRef {
 +    #[cfg_attr(not(ossl300), corresponds(DSA_get0_key))]
-     pub fn priv_key(&self) -> &BigNumRef {
++    pub fn priv_key(&self) -> BigNum {
 +        #[cfg(ossl300)]
 +        return self.0.get_bn_param(OSSL_PKEY_PARAM_PRIV_KEY).unwrap();
 +
@@ -1306,7 +1406,13 @@ index cceda21..6b4e9b7 100644
          unsafe {
              let mut priv_key = ptr::null();
              DSA_get0_key(self.as_ptr(), ptr::null_mut(), &mut priv_key);
-@@ -151,14 +189,24 @@ where
+-            BigNumRef::from_const_ptr(priv_key)
++            priv_key = ffi::BN_dup(priv_key);
++            BigNum::from_const_ptr(priv_key)
+         }
+     }
+ }
+@@ -151,50 +191,78 @@ where
      T: HasParams,
  {
      /// Returns the maximum size of the signature output by `self` in bytes.
@@ -1325,8 +1431,9 @@ index cceda21..6b4e9b7 100644
  
      /// Returns the DSA prime parameter of `self`.
 -    #[corresponds(DSA_get0_pqg)]
+-    pub fn p(&self) -> &BigNumRef {
 +    #[cfg_attr(not(ossl300), corresponds(DSA_get0_pqg))]
-     pub fn p(&self) -> &BigNumRef {
++    pub fn p(&self) -> BigNum {
 +        #[cfg(ossl300)]
 +        return self.0.get_bn_param(OSSL_PKEY_PARAM_FFC_P).unwrap();
 +
@@ -1334,13 +1441,17 @@ index cceda21..6b4e9b7 100644
          unsafe {
              let mut p = ptr::null();
              DSA_get0_pqg(self.as_ptr(), &mut p, ptr::null_mut(), ptr::null_mut());
-@@ -167,8 +215,12 @@ where
+-            BigNumRef::from_const_ptr(p)
++            p = ffi::BN_dup(p);
++            BigNum::from_const_ptr(p)
+         }
      }
  
      /// Returns the DSA sub-prime parameter of `self`.
 -    #[corresponds(DSA_get0_pqg)]
+-    pub fn q(&self) -> &BigNumRef {
 +    #[cfg_attr(not(ossl300), corresponds(DSA_get0_pqg))]
-     pub fn q(&self) -> &BigNumRef {
++    pub fn q(&self) -> BigNum {
 +        #[cfg(ossl300)]
 +        return self.0.get_bn_param(OSSL_PKEY_PARAM_FFC_Q).unwrap();
 +
@@ -1348,13 +1459,17 @@ index cceda21..6b4e9b7 100644
          unsafe {
              let mut q = ptr::null();
              DSA_get0_pqg(self.as_ptr(), ptr::null_mut(), &mut q, ptr::null_mut());
-@@ -177,8 +229,12 @@ where
+-            BigNumRef::from_const_ptr(q)
++            q = ffi::BN_dup(q);
++            BigNum::from_const_ptr(q)
+         }
      }
  
      /// Returns the DSA base parameter of `self`.
 -    #[corresponds(DSA_get0_pqg)]
+-    pub fn g(&self) -> &BigNumRef {
 +    #[cfg_attr(not(ossl300), corresponds(DSA_get0_pqg))]
-     pub fn g(&self) -> &BigNumRef {
++    pub fn g(&self) -> BigNum {
 +        #[cfg(ossl300)]
 +        return self.0.get_bn_param(OSSL_PKEY_PARAM_FFC_G).unwrap();
 +
@@ -1362,7 +1477,9 @@ index cceda21..6b4e9b7 100644
          unsafe {
              let mut g = ptr::null();
              DSA_get0_pqg(self.as_ptr(), ptr::null_mut(), ptr::null_mut(), &mut g);
-@@ -186,15 +242,22 @@ where
+-            BigNumRef::from_const_ptr(g)
++            g = ffi::BN_dup(g);
++            BigNum::from_const_ptr(g)
          }
      }
  }
@@ -1390,7 +1507,7 @@ index cceda21..6b4e9b7 100644
          unsafe {
              let dsa = Dsa::from_ptr(cvt_p(ffi::DSA_new())?);
              cvt(DSA_set0_pqg(dsa.0, p.as_ptr(), q.as_ptr(), g.as_ptr()))?;
-@@ -204,14 +267,23 @@ impl Dsa<Params> {
+@@ -204,14 +272,23 @@ impl Dsa<Params> {
      }
  
      /// Generates DSA params based on the given number of bits.
@@ -1417,7 +1534,7 @@ index cceda21..6b4e9b7 100644
                  ptr::null(),
                  0,
                  ptr::null_mut(),
-@@ -223,8 +295,16 @@ impl Dsa<Params> {
+@@ -223,8 +300,16 @@ impl Dsa<Params> {
      }
  
      /// Generates a private key based on the DSA params.
@@ -1435,7 +1552,7 @@ index cceda21..6b4e9b7 100644
          unsafe {
              let dsa_ptr = self.0;
              cvt(ffi::DSA_generate_key(dsa_ptr))?;
-@@ -255,7 +335,19 @@ impl Dsa<Private> {
+@@ -255,7 +340,19 @@ impl Dsa<Private> {
          priv_key: BigNum,
          pub_key: BigNum,
      ) -> Result<Dsa<Private>, ErrorStack> {
@@ -1456,7 +1573,7 @@ index cceda21..6b4e9b7 100644
          unsafe {
              let dsa = Dsa::from_ptr(cvt_p(ffi::DSA_new())?);
              cvt(DSA_set0_pqg(dsa.0, p.as_ptr(), q.as_ptr(), g.as_ptr()))?;
-@@ -272,17 +364,19 @@ impl Dsa<Public> {
+@@ -272,17 +369,19 @@ impl Dsa<Public> {
          /// Decodes a PEM-encoded SubjectPublicKeyInfo structure containing a DSA key.
          ///
          /// The input should have a header of `-----BEGIN PUBLIC KEY-----`.
@@ -1478,7 +1595,7 @@ index cceda21..6b4e9b7 100644
          ffi::d2i_DSA_PUBKEY
      }
  
-@@ -296,7 +390,18 @@ impl Dsa<Public> {
+@@ -296,7 +395,18 @@ impl Dsa<Public> {
          g: BigNum,
          pub_key: BigNum,
      ) -> Result<Dsa<Public>, ErrorStack> {
@@ -1498,7 +1615,7 @@ index cceda21..6b4e9b7 100644
          unsafe {
              let dsa = Dsa::from_ptr(cvt_p(ffi::DSA_new())?);
              cvt(DSA_set0_pqg(dsa.0, p.as_ptr(), q.as_ptr(), g.as_ptr()))?;
-@@ -314,8 +419,9 @@ impl<T> fmt::Debug for Dsa<T> {
+@@ -314,8 +424,9 @@ impl<T> fmt::Debug for Dsa<T> {
      }
  }
  
@@ -1509,7 +1626,7 @@ index cceda21..6b4e9b7 100644
          use ffi::{DSA_get0_key, DSA_get0_pqg, DSA_set0_key, DSA_set0_pqg};
      } else {
          #[allow(bad_style)]
-@@ -494,7 +600,7 @@ impl DsaSigRef {
+@@ -494,7 +605,7 @@ impl DsaSigRef {
  }
  
  cfg_if! {
@@ -1518,7 +1635,7 @@ index cceda21..6b4e9b7 100644
          use ffi::{DSA_SIG_set0, DSA_SIG_get0};
      } else {
          #[allow(bad_style)]
-@@ -533,12 +639,14 @@ cfg_if! {
+@@ -533,12 +644,14 @@ cfg_if! {
  mod test {
      use super::*;
      use crate::bn::BigNumContext;
@@ -1536,7 +1653,68 @@ index cceda21..6b4e9b7 100644
  
      #[test]
      pub fn test_generate() {
-@@ -607,7 +715,7 @@ mod test {
+@@ -554,8 +667,8 @@ mod test {
+         let pub_key = dsa.pub_key();
+         let mut ctx = BigNumContext::new().unwrap();
+         let mut calc = BigNum::new().unwrap();
+-        calc.mod_exp(g, priv_key, p, &mut ctx).unwrap();
+-        assert_eq!(&calc, pub_key)
++        calc.mod_exp(&g, &priv_key, &p, &mut ctx).unwrap();
++        assert_eq!(&calc, &pub_key)
+     }
+ 
+     #[test]
+@@ -567,11 +680,11 @@ mod test {
+         let pub_key = BigNum::from_u32(207).unwrap();
+ 
+         let dsa = Dsa::from_private_components(p, q, g, priv_key, pub_key).unwrap();
+-        assert_eq!(dsa.pub_key(), &BigNum::from_u32(207).unwrap());
+-        assert_eq!(dsa.priv_key(), &BigNum::from_u32(15).unwrap());
+-        assert_eq!(dsa.p(), &BigNum::from_u32(283).unwrap());
+-        assert_eq!(dsa.q(), &BigNum::from_u32(47).unwrap());
+-        assert_eq!(dsa.g(), &BigNum::from_u32(60).unwrap());
++        assert_eq!(dsa.pub_key(), BigNum::from_u32(207).unwrap());
++        assert_eq!(dsa.priv_key(), BigNum::from_u32(15).unwrap());
++        assert_eq!(dsa.p(), BigNum::from_u32(283).unwrap());
++        assert_eq!(dsa.q(), BigNum::from_u32(47).unwrap());
++        assert_eq!(dsa.g(), BigNum::from_u32(60).unwrap());
+     }
+ 
+     #[test]
+@@ -582,32 +695,27 @@ mod test {
+         let pub_key = BigNum::from_u32(207).unwrap();
+ 
+         let dsa = Dsa::from_public_components(p, q, g, pub_key).unwrap();
+-        assert_eq!(dsa.pub_key(), &BigNum::from_u32(207).unwrap());
+-        assert_eq!(dsa.p(), &BigNum::from_u32(283).unwrap());
+-        assert_eq!(dsa.q(), &BigNum::from_u32(47).unwrap());
+-        assert_eq!(dsa.g(), &BigNum::from_u32(60).unwrap());
++        assert_eq!(dsa.pub_key(), BigNum::from_u32(207).unwrap());
++        assert_eq!(dsa.p(), BigNum::from_u32(283).unwrap());
++        assert_eq!(dsa.q(), BigNum::from_u32(47).unwrap());
++        assert_eq!(dsa.g(), BigNum::from_u32(60).unwrap());
+     }
+ 
+     #[test]
+     fn test_params() {
+         let params = Dsa::generate_params(1024).unwrap();
+-        let p = params.p().to_owned().unwrap();
+-        let q = params.q().to_owned().unwrap();
+-        let g = params.g().to_owned().unwrap();
++        let p = params.p();
++        let q = params.q();
++        let g = params.g();
+         let key = params.generate_key().unwrap();
+-        let params2 = Dsa::from_pqg(
+-            key.p().to_owned().unwrap(),
+-            key.q().to_owned().unwrap(),
+-            key.g().to_owned().unwrap(),
+-        )
+-        .unwrap();
++        let params2 = Dsa::from_pqg(key.p(), key.q(), key.g()).unwrap();
+         assert_eq!(p, *params2.p());
+         assert_eq!(q, *params2.q());
+         assert_eq!(g, *params2.g());
      }
  
      #[test]
@@ -1545,7 +1723,37 @@ index cceda21..6b4e9b7 100644
      fn test_signature() {
          const TEST_DATA: &[u8] = &[0, 1, 2, 3, 4, 5, 6, 7, 8, 9];
          let dsa_ref = Dsa::generate(1024).unwrap();
-@@ -648,7 +756,7 @@ mod test {
+@@ -620,22 +728,17 @@ mod test {
+         let priv_key = dsa_ref.priv_key();
+ 
+         let priv_key = Dsa::from_private_components(
+-            BigNumRef::to_owned(p).unwrap(),
+-            BigNumRef::to_owned(q).unwrap(),
+-            BigNumRef::to_owned(g).unwrap(),
+-            BigNumRef::to_owned(priv_key).unwrap(),
+-            BigNumRef::to_owned(pub_key).unwrap(),
++            p.clone(),
++            q.clone(),
++            g.clone(),
++            priv_key.clone(),
++            pub_key.clone(),
+         )
+         .unwrap();
+         let priv_key = PKey::from_dsa(priv_key).unwrap();
+ 
+-        let pub_key = Dsa::from_public_components(
+-            BigNumRef::to_owned(p).unwrap(),
+-            BigNumRef::to_owned(q).unwrap(),
+-            BigNumRef::to_owned(g).unwrap(),
+-            BigNumRef::to_owned(pub_key).unwrap(),
+-        )
+-        .unwrap();
++        let pub_key =
++            Dsa::from_public_components(p.clone(), q.clone(), g.clone(), pub_key.clone()).unwrap();
+         let pub_key = PKey::from_dsa(pub_key).unwrap();
+ 
+         let mut signer = Signer::new(MessageDigest::sha256(), &priv_key).unwrap();
+@@ -648,7 +751,7 @@ mod test {
      }
  
      #[test]
@@ -1554,7 +1762,7 @@ index cceda21..6b4e9b7 100644
      fn test_signature_der() {
          use std::convert::TryInto;
  
-@@ -694,4 +802,63 @@ mod test {
+@@ -694,4 +797,63 @@ mod test {
          let s = format!("{:?}", sig);
          assert_eq!(s, "DsaSig { r: 774484690634577222213819810519929266740561094381, s: 910998676210681457251421818099943952372231273347 }");
      }
@@ -1793,7 +2001,7 @@ index a52bb67..3bdae07 100644
  }
  
  impl<T> EcKeyRef<T>
-@@ -700,26 +752,34 @@ where
+@@ -700,29 +752,38 @@ where
          /// Serializes the private key to a PEM-encoded ECPrivateKey structure.
          ///
          /// The output will have a header of `-----BEGIN EC PRIVATE KEY-----`.
@@ -1823,18 +2031,26 @@ index a52bb67..3bdae07 100644
  
      /// Returns the private key value.
      #[corresponds(EC_KEY_get0_private_key)]
-     pub fn private_key(&self) -> &BigNumRef {
+-    pub fn private_key(&self) -> &BigNumRef {
++    pub fn private_key(&self) -> BigNum {
 +        #[cfg(ossl300)]
 +        return self.0.get_bn_param(OSSL_PKEY_PARAM_PRIV_KEY).unwrap();
 +
 +        #[cfg(not(ossl300))]
          unsafe {
              let ptr = ffi::EC_KEY_get0_private_key(self.as_ptr());
-             BigNumRef::from_const_ptr(ptr)
-@@ -734,6 +794,29 @@ where
+-            BigNumRef::from_const_ptr(ptr)
++            ptr = ffi::BN_dup(ptr);
++            BigNum::from_const_ptr(ptr)
+         }
+     }
+ }
+@@ -733,10 +794,26 @@ where
+ {
      /// Returns the public key.
      #[corresponds(EC_KEY_get0_public_key)]
-     pub fn public_key(&self) -> &EcPointRef {
+-    pub fn public_key(&self) -> &EcPointRef {
++    pub fn public_key(&self) -> EcPoint {
 +        #[cfg(ossl300)]
 +        return {
 +            // Public key comes out as an encoded octet string
@@ -1845,23 +2061,20 @@ index a52bb67..3bdae07 100644
 +                .unwrap();
 +
 +            // So convert it back to an EcPoint
-+            let point = {
-+                let mut ctx = BigNumContext::new().unwrap();
-+                EcPoint::from_bytes(self.group(), &pub_key, &mut ctx).unwrap()
-+            };
-+
-+            let group = self.group();
-+
-+            // And dupe the pointer since we're returning a reference
-+            let ptr = cvt_p(unsafe { ffi::EC_POINT_dup(point.as_ptr(), group.as_ptr()) }).unwrap();
-+            unsafe { EcPointRef::from_const_ptr(ptr) }
++            let mut ctx = BigNumContext::new().unwrap();
++            EcPoint::from_bytes(&self.group(), &pub_key, &mut ctx).unwrap()
 +        };
 +
 +        #[cfg(not(ossl300))]
          unsafe {
              let ptr = ffi::EC_KEY_get0_public_key(self.as_ptr());
-             EcPointRef::from_const_ptr(ptr)
-@@ -744,15 +827,19 @@ where
+-            EcPointRef::from_const_ptr(ptr)
++            ptr = ffi::EC_POINT_dup(ptr, ffi::EC_KEY_get0_group(self.as_ptr()));
++            EcPoint::from_const_ptr(ptr)
+         }
+     }
+ 
+@@ -744,15 +821,19 @@ where
          /// Serializes the public key into a PEM-encoded SubjectPublicKeyInfo structure.
          ///
          /// The output will have a header of `-----BEGIN PUBLIC KEY-----`.
@@ -1883,10 +2096,12 @@ index a52bb67..3bdae07 100644
          ffi::i2d_EC_PUBKEY
      }
  }
-@@ -764,19 +851,37 @@ where
+@@ -763,20 +844,34 @@ where
+ {
      /// Returns the key's group.
      #[corresponds(EC_KEY_get0_group)]
-     pub fn group(&self) -> &EcGroupRef {
+-    pub fn group(&self) -> &EcGroupRef {
++    pub fn group(&self) -> EcGroup {
 +        #[cfg(ossl300)]
 +        return {
 +            // Name comes out as a UTF8 string (see https://docs.openssl.org/3.0/man7/EVP_PKEY-EC/#common-ec-parameters)
@@ -1900,11 +2115,7 @@ index a52bb67..3bdae07 100644
 +            let nid = Nid::from_raw(unsafe { ffi::OBJ_sn2nid(c_name.as_ptr()) });
 +
 +            // To then get the group
-+            let group = EcGroup::from_curve_name(nid).unwrap();
-+
-+            // Except we're returning a reference, so dup it, otherwise it'll be freed when we `group` is dropped
-+            let ptr = cvt_p(unsafe { ffi::EC_GROUP_dup(group.as_ptr()) }).unwrap();
-+            unsafe { EcGroupRef::from_const_ptr(ptr) }
++            EcGroup::from_curve_name(nid).unwrap()
 +        };
 +
 +        #[cfg(not(ossl300))]
@@ -1927,7 +2138,7 @@ index a52bb67..3bdae07 100644
  impl<T> ToOwned for EcKeyRef<T> {
      type Owned = EcKey<T>;
  
-@@ -796,6 +901,15 @@ impl EcKey<Params> {
+@@ -796,6 +891,15 @@ impl EcKey<Params> {
      /// to be provided to the `set_tmp_ecdh` methods on `Ssl` and `SslContextBuilder`.
      #[corresponds(EC_KEY_new_by_curve_name)]
      pub fn from_curve_name(nid: Nid) -> Result<EcKey<Params>, ErrorStack> {
@@ -1943,7 +2154,7 @@ index a52bb67..3bdae07 100644
          unsafe {
              init();
              cvt_p(ffi::EC_KEY_new_by_curve_name(nid.as_raw())).map(|p| EcKey::from_ptr(p))
-@@ -805,6 +919,10 @@ impl EcKey<Params> {
+@@ -805,6 +909,10 @@ impl EcKey<Params> {
      /// Constructs an `EcKey` corresponding to a curve.
      #[corresponds(EC_KEY_set_group)]
      pub fn from_group(group: &EcGroupRef) -> Result<EcKey<Params>, ErrorStack> {
@@ -1954,7 +2165,7 @@ index a52bb67..3bdae07 100644
          unsafe {
              cvt_p(ffi::EC_KEY_new())
                  .map(|p| EcKey::from_ptr(p))
-@@ -815,6 +933,12 @@ impl EcKey<Params> {
+@@ -815,6 +923,12 @@ impl EcKey<Params> {
      }
  }
  
@@ -1967,7 +2178,7 @@ index a52bb67..3bdae07 100644
  impl EcKey<Public> {
      /// Constructs an `EcKey` from the specified group with the associated [`EcPoint`]: `public_key`.
      ///
-@@ -848,6 +972,24 @@ impl EcKey<Public> {
+@@ -848,6 +962,24 @@ impl EcKey<Public> {
          group: &EcGroupRef,
          public_key: &EcPointRef,
      ) -> Result<EcKey<Public>, ErrorStack> {
@@ -1992,7 +2203,7 @@ index a52bb67..3bdae07 100644
          unsafe {
              cvt_p(ffi::EC_KEY_new())
                  .map(|p| EcKey::from_ptr(p))
-@@ -871,6 +1013,20 @@ impl EcKey<Public> {
+@@ -871,6 +1003,20 @@ impl EcKey<Public> {
          x: &BigNumRef,
          y: &BigNumRef,
      ) -> Result<EcKey<Public>, ErrorStack> {
@@ -2013,7 +2224,7 @@ index a52bb67..3bdae07 100644
          unsafe {
              cvt_p(ffi::EC_KEY_new())
                  .map(|p| EcKey::from_ptr(p))
-@@ -892,17 +1048,19 @@ impl EcKey<Public> {
+@@ -892,17 +1038,19 @@ impl EcKey<Public> {
          /// Decodes a PEM-encoded SubjectPublicKeyInfo structure containing a EC key.
          ///
          /// The input should have a header of `-----BEGIN PUBLIC KEY-----`.
@@ -2035,7 +2246,7 @@ index a52bb67..3bdae07 100644
          ffi::d2i_EC_PUBKEY
      }
  }
-@@ -938,6 +1096,10 @@ impl EcKey<Private> {
+@@ -938,6 +1086,10 @@ impl EcKey<Private> {
      /// ```
      #[corresponds(EC_KEY_generate_key)]
      pub fn generate(group: &EcGroupRef) -> Result<EcKey<Private>, ErrorStack> {
@@ -2046,7 +2257,7 @@ index a52bb67..3bdae07 100644
          unsafe {
              cvt_p(ffi::EC_KEY_new())
                  .map(|p| EcKey::from_ptr(p))
-@@ -948,13 +1110,32 @@ impl EcKey<Private> {
+@@ -948,13 +1100,32 @@ impl EcKey<Private> {
          }
      }
  
@@ -2080,7 +2291,7 @@ index a52bb67..3bdae07 100644
          unsafe {
              cvt_p(ffi::EC_KEY_new())
                  .map(|p| EcKey::from_ptr(p))
-@@ -982,13 +1163,13 @@ impl EcKey<Private> {
+@@ -982,13 +1153,13 @@ impl EcKey<Private> {
          /// Deserializes a private key from a PEM-encoded ECPrivateKey structure.
          ///
          /// The input should have a header of `-----BEGIN EC PRIVATE KEY-----`.
@@ -2096,7 +2307,7 @@ index a52bb67..3bdae07 100644
          private_key_from_pem_passphrase,
  
          /// Deserializes a private key from a PEM-encoded encrypted ECPrivateKey structure.
-@@ -996,21 +1177,24 @@ impl EcKey<Private> {
+@@ -996,21 +1167,24 @@ impl EcKey<Private> {
          /// The callback should fill the password into the provided buffer and return its length.
          ///
          /// The input should have a header of `-----BEGIN EC PRIVATE KEY-----`.
@@ -2123,7 +2334,7 @@ index a52bb67..3bdae07 100644
  impl<T> Clone for EcKey<T> {
      fn clone(&self) -> EcKey<T> {
          (**self).to_owned()
-@@ -1026,10 +1210,91 @@ impl<T> fmt::Debug for EcKey<T> {
+@@ -1026,10 +1200,91 @@ impl<T> fmt::Debug for EcKey<T> {
  #[cfg(test)]
  mod test {
      use hex::FromHex;
@@ -2215,7 +2426,7 @@ index a52bb67..3bdae07 100644
  
      #[test]
      fn key_new_by_curve_name() {
-@@ -1062,8 +1327,15 @@ mod test {
+@@ -1062,8 +1317,15 @@ mod test {
          let _curve = EcGroup::from_components(p, a, b, &mut ctx).unwrap();
      }
  
@@ -2233,7 +2444,7 @@ index a52bb67..3bdae07 100644
          // parameters are from secp256r1
          let group = EcGroup::from_curve_name(Nid::X9_62_PRIME256V1).unwrap();
          let mut ctx = BigNumContext::new().unwrap();
-@@ -1076,12 +1348,24 @@ mod test {
+@@ -1076,12 +1338,24 @@ mod test {
              "4FE342E2FE1A7F9B8EE7EB4A7C0F9E162BCE33576B315ECECBB6406837BF51F5",
          )
          .unwrap();
@@ -2261,7 +2472,7 @@ index a52bb67..3bdae07 100644
      #[test]
      fn ec_group_set_generator() {
          // parameters are from secp256r1
-@@ -1110,9 +1394,16 @@ mod test {
+@@ -1110,9 +1384,16 @@ mod test {
              "4FE342E2FE1A7F9B8EE7EB4A7C0F9E162BCE33576B315ECECBB6406837BF51F5",
          )
          .unwrap();
@@ -2281,7 +2492,37 @@ index a52bb67..3bdae07 100644
  
          let order = BigNum::from_hex_str(
              "FFFFFFFF00000000FFFFFFFFFFFFFFFFBCE6FAADA7179E84F3B9CAC2FC632551",
-@@ -1260,7 +1551,7 @@ mod test {
+@@ -1191,7 +1472,7 @@ mod test {
+         let point = key.public_key();
+         let owned = point.to_owned(&group).unwrap();
+         let mut ctx = BigNumContext::new().unwrap();
+-        assert!(owned.eq(&group, point, &mut ctx).unwrap());
++        assert!(owned.eq(&group, &point, &mut ctx).unwrap());
+     }
+ 
+     #[test]
+@@ -1201,9 +1482,9 @@ mod test {
+         let mut ctx = BigNumContext::new().unwrap();
+         let mut public_key = EcPoint::new(&group).unwrap();
+         public_key
+-            .mul_generator(&group, key.private_key(), &ctx)
++            .mul_generator(&group, &key.private_key(), &ctx)
+             .unwrap();
+-        assert!(public_key.eq(&group, key.public_key(), &mut ctx).unwrap());
++        assert!(public_key.eq(&group, &key.public_key(), &mut ctx).unwrap());
+     }
+ 
+     #[test]
+@@ -1239,7 +1520,7 @@ mod test {
+         let key = EcKey::generate(&group).unwrap();
+ 
+         let dup_key =
+-            EcKey::from_private_components(&group, key.private_key(), key.public_key()).unwrap();
++            EcKey::from_private_components(&group, &key.private_key(), &key.public_key()).unwrap();
+         dup_key.check_key().unwrap();
+ 
+         assert!(key.private_key() == dup_key.private_key());
+@@ -1260,7 +1541,7 @@ mod test {
          assert!(ec_key.check_key().is_ok());
      }
  
@@ -2290,7 +2531,7 @@ index a52bb67..3bdae07 100644
      #[test]
      fn get_affine_coordinates() {
          let group = EcGroup::from_curve_name(Nid::X9_62_PRIME256V1).unwrap();
-@@ -1302,9 +1593,16 @@ mod test {
+@@ -1302,9 +1583,16 @@ mod test {
          let mut ybn2 = BigNum::new().unwrap();
          let mut ctx = BigNumContext::new().unwrap();
          let ec_key_pk = ec_key.public_key();
@@ -2310,7 +2551,7 @@ index a52bb67..3bdae07 100644
          assert_eq!(xbn2, xbn);
          assert_eq!(ybn2, ybn);
      }
-@@ -1336,7 +1634,7 @@ mod test {
+@@ -1336,7 +1624,7 @@ mod test {
      }
  
      #[test]
@@ -2429,6 +2670,15 @@ index 0d962c7..0ea35dd 100644
          #[allow(bad_style)]
          unsafe fn ECDSA_SIG_set0(
              sig: *mut ffi::ECDSA_SIG,
+@@ -154,7 +164,7 @@ mod test {
+     use crate::pkey::{Private, Public};
+ 
+     fn get_public_key(group: &EcGroup, x: &EcKey<Private>) -> Result<EcKey<Public>, ErrorStack> {
+-        EcKey::from_public_key(group, x.public_key())
++        EcKey::from_public_key(group, &x.public_key())
+     }
+ 
+     #[test]
 diff --git a/src/encrypt.rs b/src/encrypt.rs
 index cd08d65..7cadb31 100644
 --- a/src/encrypt.rs
@@ -2710,6 +2960,20 @@ index 5acaf92..2df62d5 100644
              Squeeze => (),
              Finalized => (),
          }
+@@ -278,11 +278,11 @@ impl Hasher {
+         if self.state == Finalized {
+             self.init()?;
+         }
+-        #[cfg(ossl330)]
++        #[cfg(any(ossl330, awslc))]
+         if self.state == Squeeze {
+             // [`EVP_DigestUpdate`], depending on the implementation, may allow Updates after Squeezes.
+             // But, [FIPS 202], as shown in Figure 7, has a distinguished absorbing phase followed by a squeezing phase.
+-            // Indeed, the [`sha3.c`] implmentation disallows Updates after Squeezes.
++            // Indeed, the [`sha3.c`] implementation disallows Updates after Squeezes.
+             // For consistency, we always return an error when Update is called after Squeeze.
+             //
+             // [`EVP_DigestUpdate`]: https://github.com/openssl/openssl/blob/b3bb214720f20f3b126ae4b9c330e9a48b835415/crypto/evp/digest.c#L385-L393
 @@ -304,7 +304,7 @@ impl Hasher {
  
      /// Squeezes buf out of the hasher. Can be called multiple times, unlike `finish_xof`.
@@ -3863,6 +4127,21 @@ index b02ddfd..1ac9d5e 100644
      #[inline]
      pub fn sm3() -> &'static MdRef {
          unsafe { MdRef::from_ptr(ffi::EVP_sm3() as *mut _) }
+diff --git a/src/md_ctx.rs b/src/md_ctx.rs
+index 0182907ad..d6ffbef99 100644
+--- a/src/md_ctx.rs
++++ b/src/md_ctx.rs
+@@ -479,8 +479,8 @@ mod test {
+         let good_data = b"Some Crypto Text";
+ 
+         // try to verify using only public components of the key
+-        let n = rsa.n().to_owned().unwrap();
+-        let e = rsa.e().to_owned().unwrap();
++        let n = rsa.n();
++        let e = rsa.e();
+ 
+         let rsa = Rsa::from_public_components(n, e).unwrap();
+         let key1 = PKey::from_rsa(rsa).unwrap();
 diff --git a/src/nid.rs b/src/nid.rs
 index 453a87c..b4aba6b 100644
 --- a/src/nid.rs
@@ -4249,7 +4528,7 @@ index 0000000..c09df9e
 +impl OsslEncoderCtxRef {
 +    // XXX: Because the only way to create an `EncoderCtx` is through `new_for_key`, don't expose
 +    //  set_selection, because it doesn't work if OSSL_ENCODER_CTX_new_for_key is called!
-+    //  See https://github.com/issues/28249
++    //  See https://github.com/openssl/openssl/issues/28249
 +    // /// Select which parts of the key to encode.
 +    // #[corresponds(OSSL_ENCODER_CTX_set_selection)]
 +    // #[allow(dead_code)]
@@ -4505,7 +4784,7 @@ index 0000000..c09df9e
 +                    .set_key_type(Id::RSA)
 +                    .set_format(KeyFormat::Pem)
 +                    .set_structure(Structure::PKCS1)
-+                    .decode(include_bytes!("../test/rsa.pkcs1.pem"))
++                    .decode(include_bytes!("../test/rsa.pem"))
 +                    .unwrap()
 +                    .rsa()
 +                    .unwrap();
@@ -4843,7 +5122,7 @@ new file mode 100644
 index 0000000..da4fb0c
 --- /dev/null
 +++ b/src/ossl_param.rs
-@@ -0,0 +1,362 @@
+@@ -0,0 +1,358 @@
 +//! OSSL_PARAM management for OpenSSL 3.*
 +//!
 +//! The OSSL_PARAM structure represents an array of generic
@@ -4937,17 +5216,13 @@ index 0000000..da4fb0c
 +    #[corresponds(OSSL_PARAM_merge)]
 +    #[allow(dead_code)]
 +    pub fn merge(&self, other: &OsslParamArrayRef) -> Result<OsslParamArray, ErrorStack> {
-+        // OSSL_PARAM_merge shallow copies the params
-+        // OSSL_PARAM_free  deep frees (so the params and values will be freed)
-+        // OSSL_PARAM_dup   deep copies
-+        // Dupe both params[] so we don't end up pointing to freed memory.
-+        cvt_p(unsafe {
-+            ffi::OSSL_PARAM_merge(
-+                ffi::OSSL_PARAM_dup(self.as_ptr()),
-+                ffi::OSSL_PARAM_dup(other.as_ptr()),
-+            )
-+        })
-+        .map(|p| unsafe { OsslParamArray::from_ptr(p) })
++        // merge combines the two lists by borrowing the params from the input lists
++        let merge_ptr = cvt_p(unsafe { ffi::OSSL_PARAM_merge(self.as_ptr(), other.as_ptr()) })?;
++        // because the merge doesn't copy data, we need to dupe the result so we own everything
++        let result = unsafe { ffi::OSSL_PARAM_dup(merge_ptr) };
++        // then free the merge result to drop borrowed the references to the original lists
++        unsafe { ffi::OSSL_PARAM_free(merge_ptr) };
++        cvt_p(result).map(|p| unsafe { OsslParamArray::from_ptr(p) })
 +    }
 +}
 +
@@ -5259,7 +5534,7 @@ index 8d69e1c..ff6ee30 100644
  #![allow(clippy::missing_safety_doc)]
  use crate::bio::{MemBio, MemBioSlice};
 +#[cfg(ossl300)]
-+use crate::bn::BigNumRef;
++use crate::bn::BigNum;
  #[cfg(ossl110)]
  use crate::cipher::CipherRef;
  use crate::dh::Dh;
@@ -5520,7 +5795,7 @@ index 8d69e1c..ff6ee30 100644
 +    #[corresponds(EVP_PKEY_get_bn_param)]
 +    #[cfg(ossl300)]
 +    #[allow(dead_code)]
-+    pub(crate) fn get_bn_param(&self, key: &CStr) -> Result<&BigNumRef, ErrorStack> {
++    pub(crate) fn get_bn_param(&self, key: &CStr) -> Result<BigNum, ErrorStack> {
 +        let mut value = ptr::null_mut();
 +        unsafe {
 +            cvt(ffi::EVP_PKEY_get_bn_param(
@@ -5528,7 +5803,7 @@ index 8d69e1c..ff6ee30 100644
 +                key.as_ptr(),
 +                &mut value,
 +            ))?;
-+            Ok(BigNumRef::from_ptr(value))
++            Ok(BigNum::from_ptr(value))
 +        }
 +    }
 +
@@ -5873,6 +6148,30 @@ index 8d69e1c..ff6ee30 100644
      use crate::rsa::Rsa;
      use crate::symm::Cipher;
  
+@@ -1109,17 +1420,17 @@ mod tests {
+         let dh = dh_params.generate_key().unwrap();
+ 
+         // Clone is missing for Dh, save the parameters
+-        let p = dh.prime_p().to_owned().unwrap();
+-        let q = dh.prime_q().map(|q| q.to_owned().unwrap());
+-        let g = dh.generator().to_owned().unwrap();
++        let p = dh.prime_p();
++        let q = dh.prime_q();
++        let g = dh.generator();
+ 
+         let pkey: PKey<Private> = dh.try_into().unwrap();
+         let dh_: Dh<Private> = pkey.try_into().unwrap();
+ 
+         // Eq is missing
+-        assert_eq!(&p, dh_.prime_p());
+-        assert_eq!(q, dh_.prime_q().map(|q| q.to_owned().unwrap()));
+-        assert_eq!(&g, dh_.generator());
++        assert_eq!(p, dh_.prime_p());
++        assert_eq!(q, dh_.prime_q());
++        assert_eq!(g, dh_.generator());
+     }
+ 
+     #[cfg(any(ossl111, boringssl, libressl370, awslc))]
 @@ -1219,4 +1530,50 @@ mod tests {
          assert!(!pkey1.public_eq(&pkey2));
          assert!(Error::get().is_none());
@@ -6418,9 +6717,9 @@ index aa39a0f..49e9d95 100644
 +
 +        let rsa = pkey.rsa().unwrap();
 +
-+        assert_eq!(rsa.n(), &n);
-+        assert_eq!(rsa.e(), &e);
-+        assert_eq!(rsa.d(), &d);
++        assert_eq!(rsa.n(), n);
++        assert_eq!(rsa.e(), e);
++        assert_eq!(rsa.d(), d);
 +    }
  }
 diff --git a/src/rsa.rs b/src/rsa.rs
@@ -6561,7 +6860,7 @@ index ea1548c..1432ffc 100644
      pub fn private_encrypt(
          &self,
          from: &[u8],
-@@ -160,21 +189,20 @@ where
+@@ -160,92 +189,121 @@ where
          assert!(from.len() <= i32::MAX as usize);
          assert!(to.len() >= self.size() as usize);
  
@@ -6584,8 +6883,9 @@ index ea1548c..1432ffc 100644
  
      /// Returns a reference to the private exponent of the key.
 -    #[corresponds(RSA_get0_key)]
+-    pub fn d(&self) -> &BigNumRef {
 +    #[cfg_attr(not(ossl300), corresponds(RSA_get0_key))]
-     pub fn d(&self) -> &BigNumRef {
++    pub fn d(&self) -> BigNum {
 +        #[cfg(ossl300)]
 +        return self.0.get_bn_param(OSSL_PKEY_PARAM_RSA_D).unwrap();
 +
@@ -6593,13 +6893,17 @@ index ea1548c..1432ffc 100644
          unsafe {
              let mut d = ptr::null();
              RSA_get0_key(self.as_ptr(), ptr::null_mut(), ptr::null_mut(), &mut d);
-@@ -183,8 +211,12 @@ where
+-            BigNumRef::from_const_ptr(d)
++            d = ffi::BN_dup(d);
++            BigNum::from_const_ptr(d)
+         }
      }
  
      /// Returns a reference to the first factor of the exponent of the key.
 -    #[corresponds(RSA_get0_factors)]
+-    pub fn p(&self) -> Option<&BigNumRef> {
 +    #[cfg_attr(not(ossl300), corresponds(RSA_get0_factors))]
-     pub fn p(&self) -> Option<&BigNumRef> {
++    pub fn p(&self) -> Option<BigNum> {
 +        #[cfg(ossl300)]
 +        return self.0.get_bn_param(OSSL_PKEY_PARAM_RSA_FACTOR1).ok();
 +
@@ -6607,13 +6911,17 @@ index ea1548c..1432ffc 100644
          unsafe {
              let mut p = ptr::null();
              RSA_get0_factors(self.as_ptr(), &mut p, ptr::null_mut());
-@@ -193,8 +225,12 @@ where
+-            BigNumRef::from_const_ptr_opt(p)
++            p = ffi::BN_dup(p);
++            BigNum::from_const_ptr_opt(p)
+         }
      }
  
      /// Returns a reference to the second factor of the exponent of the key.
 -    #[corresponds(RSA_get0_factors)]
+-    pub fn q(&self) -> Option<&BigNumRef> {
 +    #[cfg_attr(not(ossl300), corresponds(RSA_get0_factors))]
-     pub fn q(&self) -> Option<&BigNumRef> {
++    pub fn q(&self) -> Option<BigNum> {
 +        #[cfg(ossl300)]
 +        return self.0.get_bn_param(OSSL_PKEY_PARAM_RSA_FACTOR2).ok();
 +
@@ -6621,13 +6929,17 @@ index ea1548c..1432ffc 100644
          unsafe {
              let mut q = ptr::null();
              RSA_get0_factors(self.as_ptr(), ptr::null_mut(), &mut q);
-@@ -203,8 +239,12 @@ where
+-            BigNumRef::from_const_ptr_opt(q)
++            p = ffi::BN_dup(p);
++            BigNum::from_const_ptr_opt(q)
+         }
      }
  
      /// Returns a reference to the first exponent used for CRT calculations.
 -    #[corresponds(RSA_get0_crt_params)]
+-    pub fn dmp1(&self) -> Option<&BigNumRef> {
 +    #[cfg_attr(not(ossl300), corresponds(RSA_get0_crt_params))]
-     pub fn dmp1(&self) -> Option<&BigNumRef> {
++    pub fn dmp1(&self) -> Option<BigNum> {
 +        #[cfg(ossl300)]
 +        return self.0.get_bn_param(OSSL_PKEY_PARAM_RSA_EXPONENT1).ok();
 +
@@ -6635,13 +6947,17 @@ index ea1548c..1432ffc 100644
          unsafe {
              let mut dp = ptr::null();
              RSA_get0_crt_params(self.as_ptr(), &mut dp, ptr::null_mut(), ptr::null_mut());
-@@ -213,8 +253,12 @@ where
+-            BigNumRef::from_const_ptr_opt(dp)
++            dp = ffi::BN_dup(dp);
++            BigNum::from_const_ptr_opt(dp)
+         }
      }
  
      /// Returns a reference to the second exponent used for CRT calculations.
 -    #[corresponds(RSA_get0_crt_params)]
+-    pub fn dmq1(&self) -> Option<&BigNumRef> {
 +    #[cfg_attr(not(ossl300), corresponds(RSA_get0_crt_params))]
-     pub fn dmq1(&self) -> Option<&BigNumRef> {
++    pub fn dmq1(&self) -> Option<BigNum> {
 +        #[cfg(ossl300)]
 +        return self.0.get_bn_param(OSSL_PKEY_PARAM_RSA_EXPONENT2).ok();
 +
@@ -6649,13 +6965,17 @@ index ea1548c..1432ffc 100644
          unsafe {
              let mut dq = ptr::null();
              RSA_get0_crt_params(self.as_ptr(), ptr::null_mut(), &mut dq, ptr::null_mut());
-@@ -223,29 +267,37 @@ where
+-            BigNumRef::from_const_ptr_opt(dq)
++            dq = ffi::BN_dup(dq);
++            BigNum::from_const_ptr_opt(dq)
+         }
      }
  
      /// Returns a reference to the coefficient used for CRT calculations.
 -    #[corresponds(RSA_get0_crt_params)]
+-    pub fn iqmp(&self) -> Option<&BigNumRef> {
 +    #[cfg_attr(not(ossl300), corresponds(RSA_get0_crt_params))]
-     pub fn iqmp(&self) -> Option<&BigNumRef> {
++    pub fn iqmp(&self) -> Option<BigNum> {
 +        #[cfg(ossl300)]
 +        return self.0.get_bn_param(OSSL_PKEY_PARAM_RSA_COEFFICIENT1).ok();
 +
@@ -6663,7 +6983,9 @@ index ea1548c..1432ffc 100644
          unsafe {
              let mut qi = ptr::null();
              RSA_get0_crt_params(self.as_ptr(), ptr::null_mut(), ptr::null_mut(), &mut qi);
-             BigNumRef::from_const_ptr_opt(qi)
+-            BigNumRef::from_const_ptr_opt(qi)
++            qi = ffi::BN_dup(qi);
++            BigNum::from_const_ptr_opt(qi)
          }
      }
 +}
@@ -6695,7 +7017,7 @@ index ea1548c..1432ffc 100644
              }
          }
      }
-@@ -259,15 +311,19 @@ where
+@@ -259,15 +317,19 @@ where
          /// Serializes the public key into a PEM-encoded SubjectPublicKeyInfo structure.
          ///
          /// The output will have a header of `-----BEGIN PUBLIC KEY-----`.
@@ -6717,7 +7039,7 @@ index ea1548c..1432ffc 100644
          ffi::i2d_RSA_PUBKEY
      }
  
-@@ -275,22 +331,32 @@ where
+@@ -275,22 +337,32 @@ where
          /// Serializes the public key into a PEM-encoded PKCS#1 RSAPublicKey structure.
          ///
          /// The output will have a header of `-----BEGIN RSA PUBLIC KEY-----`.
@@ -6754,7 +7076,7 @@ index ea1548c..1432ffc 100644
      }
  
      /// Decrypts data using the public key, returning the number of decrypted bytes.
-@@ -298,7 +364,6 @@ where
+@@ -298,7 +370,6 @@ where
      /// # Panics
      ///
      /// Panics if `to` is smaller than `self.size()`.
@@ -6762,7 +7084,7 @@ index ea1548c..1432ffc 100644
      pub fn public_decrypt(
          &self,
          from: &[u8],
-@@ -308,16 +373,11 @@ where
+@@ -308,16 +379,11 @@ where
          assert!(from.len() <= i32::MAX as usize);
          assert!(to.len() >= self.size() as usize);
  
@@ -6784,7 +7106,7 @@ index ea1548c..1432ffc 100644
      }
  
      /// Encrypts data using the public key, returning the number of encrypted bytes.
-@@ -325,7 +385,6 @@ where
+@@ -325,7 +391,6 @@ where
      /// # Panics
      ///
      /// Panics if `to` is smaller than `self.size()`.
@@ -6792,7 +7114,7 @@ index ea1548c..1432ffc 100644
      pub fn public_encrypt(
          &self,
          from: &[u8],
-@@ -335,21 +394,20 @@ where
+@@ -335,35 +400,40 @@ where
          assert!(from.len() <= i32::MAX as usize);
          assert!(to.len() >= self.size() as usize);
  
@@ -6815,8 +7137,9 @@ index ea1548c..1432ffc 100644
  
      /// Returns a reference to the modulus of the key.
 -    #[corresponds(RSA_get0_key)]
+-    pub fn n(&self) -> &BigNumRef {
 +    #[cfg_attr(not(ossl300), corresponds(RSA_get0_key))]
-     pub fn n(&self) -> &BigNumRef {
++    pub fn n(&self) -> BigNum {
 +        #[cfg(ossl300)]
 +        return self.0.get_bn_param(OSSL_PKEY_PARAM_RSA_N).unwrap();
 +
@@ -6824,13 +7147,17 @@ index ea1548c..1432ffc 100644
          unsafe {
              let mut n = ptr::null();
              RSA_get0_key(self.as_ptr(), &mut n, ptr::null_mut(), ptr::null_mut());
-@@ -358,8 +416,12 @@ where
+-            BigNumRef::from_const_ptr(n)
++            n = ffi::BN_dup(n);
++            BigNum::from_const_ptr(n)
+         }
      }
  
      /// Returns a reference to the public exponent of the key.
 -    #[corresponds(RSA_get0_key)]
+-    pub fn e(&self) -> &BigNumRef {
 +    #[cfg_attr(not(ossl300), corresponds(RSA_get0_key))]
-     pub fn e(&self) -> &BigNumRef {
++    pub fn e(&self) -> BigNum {
 +        #[cfg(ossl300)]
 +        return self.0.get_bn_param(OSSL_PKEY_PARAM_RSA_E).unwrap();
 +
@@ -6838,7 +7165,13 @@ index ea1548c..1432ffc 100644
          unsafe {
              let mut e = ptr::null();
              RSA_get0_key(self.as_ptr(), ptr::null_mut(), &mut e, ptr::null_mut());
-@@ -373,12 +435,19 @@ impl Rsa<Public> {
+-            BigNumRef::from_const_ptr(e)
++            e = ffi::BN_dup(e);
++            BigNum::from_const_ptr(e)
+         }
+     }
+ }
+@@ -373,12 +443,19 @@ impl Rsa<Public> {
      ///
      /// `n` is the modulus common to both public and private key.
      /// `e` is the public exponent.
@@ -6863,7 +7196,7 @@ index ea1548c..1432ffc 100644
          unsafe {
              let rsa = cvt_p(ffi::RSA_new())?;
              RSA_set0_key(rsa, n.as_ptr(), e.as_ptr(), ptr::null_mut());
-@@ -391,9 +460,10 @@ impl Rsa<Public> {
+@@ -391,9 +468,10 @@ impl Rsa<Public> {
          /// Decodes a PEM-encoded SubjectPublicKeyInfo structure containing an RSA key.
          ///
          /// The input should have a header of `-----BEGIN PUBLIC KEY-----`.
@@ -6875,7 +7208,7 @@ index ea1548c..1432ffc 100644
          ffi::PEM_read_bio_RSA_PUBKEY
      }
  
-@@ -401,30 +471,37 @@ impl Rsa<Public> {
+@@ -401,30 +479,37 @@ impl Rsa<Public> {
          /// Decodes a PEM-encoded PKCS#1 RSAPublicKey structure.
          ///
          /// The input should have a header of `-----BEGIN RSA PUBLIC KEY-----`.
@@ -6916,7 +7249,7 @@ index ea1548c..1432ffc 100644
      rsa: Rsa<Private>,
  }
  
-@@ -433,12 +510,19 @@ impl RsaPrivateKeyBuilder {
+@@ -433,12 +518,19 @@ impl RsaPrivateKeyBuilder {
      ///
      /// `n` is the modulus common to both public and private key.
      /// `e` is the public exponent and `d` is the private exponent.
@@ -6941,7 +7274,7 @@ index ea1548c..1432ffc 100644
          unsafe {
              let rsa = cvt_p(ffi::RSA_new())?;
              RSA_set0_key(rsa, n.as_ptr(), e.as_ptr(), d.as_ptr());
-@@ -452,21 +536,32 @@ impl RsaPrivateKeyBuilder {
+@@ -452,21 +544,32 @@ impl RsaPrivateKeyBuilder {
      /// Sets the factors of the Rsa key.
      ///
      /// `p` and `q` are the first and second factors of `n`.
@@ -6980,7 +7313,7 @@ index ea1548c..1432ffc 100644
      // FIXME should be infallible
      pub fn set_crt_params(
          self,
-@@ -474,20 +569,43 @@ impl RsaPrivateKeyBuilder {
+@@ -474,20 +577,43 @@ impl RsaPrivateKeyBuilder {
          dmq1: BigNum,
          iqmp: BigNum,
      ) -> Result<RsaPrivateKeyBuilder, ErrorStack> {
@@ -7033,7 +7366,7 @@ index ea1548c..1432ffc 100644
          self.rsa
      }
  }
-@@ -527,7 +645,7 @@ impl Rsa<Private> {
+@@ -527,7 +653,7 @@ impl Rsa<Private> {
      /// Generates a public/private key pair with the specified size.
      ///
      /// The public exponent will be 65537.
@@ -7042,7 +7375,7 @@ index ea1548c..1432ffc 100644
      pub fn generate(bits: u32) -> Result<Rsa<Private>, ErrorStack> {
          let e = BigNum::from_u32(ffi::RSA_F4 as u32)?;
          Rsa::generate_with_e(bits, &e)
-@@ -536,44 +654,41 @@ impl Rsa<Private> {
+@@ -536,44 +662,41 @@ impl Rsa<Private> {
      /// Generates a public/private key pair with the specified size and a custom exponent.
      ///
      /// Unless you have specific needs and know what you're doing, use `Rsa::generate` instead.
@@ -7099,7 +7432,7 @@ index ea1548c..1432ffc 100644
          ffi::d2i_RSAPrivateKey
      }
  }
-@@ -584,8 +699,9 @@ impl<T> fmt::Debug for Rsa<T> {
+@@ -584,8 +707,9 @@ impl<T> fmt::Debug for Rsa<T> {
      }
  }
  
@@ -7110,7 +7443,7 @@ index ea1548c..1432ffc 100644
          use ffi::{
              RSA_get0_key, RSA_get0_factors, RSA_get0_crt_params, RSA_set0_key, RSA_set0_factors,
              RSA_set0_crt_params,
-@@ -683,17 +799,78 @@ cfg_if! {
+@@ -683,17 +807,78 @@ cfg_if! {
  #[cfg(test)]
  mod test {
      use crate::symm::Cipher;
@@ -7191,7 +7524,7 @@ index ea1548c..1432ffc 100644
          let mut password_queried = false;
          let key = include_bytes!("../test/rsa-encrypted.pem");
          Rsa::private_key_from_pem_callback(key, |password| {
-@@ -707,8 +884,18 @@ mod test {
+@@ -707,8 +892,18 @@ mod test {
      }
  
      #[test]
@@ -7212,7 +7545,7 @@ index ea1548c..1432ffc 100644
          let pem = key
              .private_key_to_pem_passphrase(Cipher::aes_128_cbc(), b"foobar")
              .unwrap();
-@@ -716,9 +903,16 @@ mod test {
+@@ -716,9 +911,16 @@ mod test {
          assert!(Rsa::private_key_from_pem_passphrase(&pem, b"fizzbuzz").is_err());
      }
  
@@ -7230,7 +7563,7 @@ index ea1548c..1432ffc 100644
          let public_key = Rsa::public_key_from_pem(key).unwrap();
  
          let mut result = vec![0; public_key.size() as usize];
-@@ -780,25 +974,52 @@ mod test {
+@@ -780,25 +982,52 @@ mod test {
      }
  
      #[test]
@@ -7291,7 +7624,7 @@ index ea1548c..1432ffc 100644
      }
  
      #[test]
-@@ -848,6 +1069,32 @@ mod test {
+@@ -848,6 +1077,32 @@ mod test {
          drop(key.clone());
      }
  
@@ -7301,14 +7634,14 @@ index ea1548c..1432ffc 100644
 +        let rsa = Rsa::private_key_from_pem_passphrase(key, b"mypass").unwrap();
 +
 +        let rsa2 = Rsa::from_private_components(
-+            rsa.n().to_owned().unwrap(),
-+            rsa.e().to_owned().unwrap(),
-+            rsa.d().to_owned().unwrap(),
-+            rsa.p().unwrap().to_owned().unwrap(),
-+            rsa.q().unwrap().to_owned().unwrap(),
-+            rsa.dmp1().unwrap().to_owned().unwrap(),
-+            rsa.dmq1().unwrap().to_owned().unwrap(),
-+            rsa.iqmp().unwrap().to_owned().unwrap(),
++            rsa.n(),
++            rsa.e(),
++            rsa.d(),
++            rsa.p().unwrap(),
++            rsa.q().unwrap(),
++            rsa.dmp1().unwrap(),
++            rsa.dmq1().unwrap(),
++            rsa.iqmp().unwrap(),
 +        )
 +        .unwrap();
 +        assert_eq!(rsa.n(), rsa2.n(), "n");
@@ -7483,7 +7816,7 @@ index 22eb600..1fba12a 100644
      match (*callback)(ssl, is_export != 0, keylength as u32) {
          Ok(dh) => {
 +            #[cfg(ossl300)]
-+            let ptr = cvt_p(unsafe { ffi::EVP_PKEY_get1_DH(dh.as_ptr()) }).unwrap();
++            let ptr = cvt_p(unsafe { ffi::EVP_PKEY_get0_DH(dh.as_ptr()) }).unwrap();
 +            #[cfg(not(ossl300))]
              let ptr = dh.as_ptr();
              mem::forget(dh);
@@ -7510,7 +7843,7 @@ index 22eb600..1fba12a 100644
      match callback(ssl, is_export != 0, keylength as u32) {
          Ok(dh) => {
 +            #[cfg(ossl300)]
-+            let ptr = cvt_p(unsafe { ffi::EVP_PKEY_get1_DH(dh.as_ptr()) }).unwrap();
++            let ptr = cvt_p(unsafe { ffi::EVP_PKEY_get0_DH(dh.as_ptr()) }).unwrap();
 +            #[cfg(not(ossl300))]
              let ptr = dh.as_ptr();
              mem::forget(dh);
